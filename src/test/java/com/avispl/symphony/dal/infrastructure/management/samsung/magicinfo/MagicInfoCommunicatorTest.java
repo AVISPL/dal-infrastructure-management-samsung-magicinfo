@@ -9,11 +9,15 @@ import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.avispl.symphony.api.dal.dto.control.AdvancedControllableProperty;
+import com.avispl.symphony.api.dal.dto.control.ControllableProperty;
 import com.avispl.symphony.api.dal.dto.monitor.ExtendedStatistics;
+import com.avispl.symphony.api.dal.dto.monitor.aggregator.AggregatedDevice;
+import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.MagicInfoConstant;
 
 /**
  * MagicInfoCommunicatorTest
@@ -56,5 +60,25 @@ public class MagicInfoCommunicatorTest {
 		Map<String, String> statistics = extendedStatistic.getStatistics();
 		List<AdvancedControllableProperty> advancedControllablePropertyList = extendedStatistic.getControllableProperties();
 		Assert.assertEquals(4, statistics.size());
+	}
+
+	@Test
+	void testGetMultipleStatistics() throws Exception {
+		magicInfoCommunicator.getMultipleStatistics();
+		magicInfoCommunicator.retrieveMultipleStatistics();
+		Thread.sleep(30000);
+		List<AggregatedDevice> aggregatedDeviceList = magicInfoCommunicator.retrieveMultipleStatistics();
+		Assert.assertEquals(1, aggregatedDeviceList.size());
+	}
+
+	@Test
+	void testFiltering() throws Exception {
+		magicInfoCommunicator.setFilterDeviceType("S6PLAYER");
+		magicInfoCommunicator.setFilterSource("HDMI1,AAA");
+		magicInfoCommunicator.getMultipleStatistics();
+		magicInfoCommunicator.retrieveMultipleStatistics();
+		Thread.sleep(30000);
+		List<AggregatedDevice> aggregatedDeviceList = magicInfoCommunicator.retrieveMultipleStatistics();
+		Assert.assertEquals(0, aggregatedDeviceList.size());
 	}
 }

@@ -16,7 +16,6 @@ import java.util.Optional;
  * @since 1.0.0
  */
 public enum DisplayInfo {
-	POWER("Power", MagicInfoConstant.EMPTY, "power"),
 	DISPLAY_PANEL("DisplayPanel", MagicInfoConstant.DISPLAY_GENERAL_GROUP, "basicPanelStatus"),
 	SOURCE("Source", MagicInfoConstant.DISPLAY_GENERAL_GROUP, "basicSource"),
 	WEB_BROWSER_INTERVAL("WebBrowserRefreshInterval", MagicInfoConstant.DISPLAY_GENERAL_GROUP, "webBrowserInterval"),
@@ -46,7 +45,7 @@ public enum DisplayInfo {
 	MAX_POWER_SAVING("MaxPowerSaving", MagicInfoConstant.ADVANCED_SETTING, "maxPowerSaving"),
 	AUTO_POWER_ON("AutoPowerOn", MagicInfoConstant.ADVANCED_SETTING, "advancedAutoPower"),
 	REMOTE_CONFIGURATION("RemoteConfiguration", MagicInfoConstant.ADVANCED_SETTING, "networkStandbyMode"),
-	AUTO_SOURCE_SWITCHING("AutoSourceSwitching", MagicInfoConstant.ADVANCED_SETTING, ""),
+	AUTO_SOURCE_SWITCHING("AutoSourceSwitching", MagicInfoConstant.ADVANCED_SETTING, "autoSourceSwitching"),
 	RESTORE_PRIMARY_SOURCE("RestorePrimarySource", MagicInfoConstant.ADVANCED_SETTING, ""),
 	PRIMARY_SOURCE("PrimarySource", MagicInfoConstant.ADVANCED_SETTING, ""),
 	SECONDARY_SOURCE("SecondarySource", MagicInfoConstant.ADVANCED_SETTING, ""),

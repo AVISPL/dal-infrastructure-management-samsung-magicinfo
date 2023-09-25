@@ -19,4 +19,6 @@ public class MagicInfoCommand {
 	public static final String ALL_DEVICES_COMMAND = "MagicInfo/restapi/v2.0/rms/devices?pageSize=10000&startIndex=1";
 	public static final String GENERAL_INFO_COMMAND = "MagicInfo/restapi/v2.0/rms/devices/general-info";
 	public static final String DISPLAY_INFO_COMMAND = "MagicInfo/restapi/v2.0/rms/devices/display-info";
+	public static final String CHECK_CONNECTION_COMMAND = "MagicInfo/restapi/v2.0/rms/devices/connections-checked";
+	public static final String UPDATE_DISPLAY_COMMAND = "MagicInfo/restapi/v2.0/rms/devices/current-display-info";
 }

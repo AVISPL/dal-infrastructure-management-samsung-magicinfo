@@ -4,6 +4,8 @@
 
 package com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo;
 
+import static com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.DisplayInfo.SCREEN_LAMP_SCHEDULE;
+
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.Socket;
@@ -12,16 +14,20 @@ import java.net.UnknownHostException;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -45,11 +51,30 @@ import com.avispl.symphony.dal.aggregator.parser.AggregatedDeviceProcessor;
 import com.avispl.symphony.dal.aggregator.parser.PropertiesMapping;
 import com.avispl.symphony.dal.aggregator.parser.PropertiesMappingParser;
 import com.avispl.symphony.dal.communicator.RestCommunicator;
+import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.DisplayInfo;
+import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.EnumTypeHandler;
 import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.GeneralInfo;
 import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.MagicInfoCommand;
 import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.MagicInfoConstant;
+import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.QuickControl;
 import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.SystemInfo;
+import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.general.SourceEnum;
+import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.general.WebBrowserIntervalEnum;
+import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.general.WebBrowserZoomEnum;
+import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.picture.ColorTemperatureEnum;
+import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.picture.ColorToneEnum;
+import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.picture.DigitalCleanViewEnum;
+import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.picture.FilmModeEnum;
+import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.picture.HDMIBlackLevelEnum;
+import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.picture.LEDPictureSizeEnum;
+import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.picture.PictureSizeEnum;
+import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.screen.ImmediateDisplayEnum;
+import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.screen.IntervalModeEnum;
+import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.screen.RepeatModeEnum;
+import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.screen.TimerEnum;
+import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.sound.SoundModeEnum;
 import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.dto.DeviceType;
+import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.statistics.DynamicStatisticsDefinition;
 import com.avispl.symphony.dal.util.StringUtils;
 
 /**
@@ -209,6 +234,9 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 	 */
 	private List<AggregatedDevice> aggregatedDeviceList = Collections.synchronizedList(new ArrayList<>());
 
+	/**
+	 *
+	 */
 	private boolean checkControl = false;
 
 	/**
@@ -242,6 +270,11 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 	private List<DeviceType> deviceTypeList = Collections.synchronizedList(new ArrayList<>());
 
 	/**
+	 * Configurable property for historical properties, comma separated values kept as set locally
+	 */
+	private Set<String> historicalProperties = new HashSet<>();
+
+	/**
 	 * A filter for device type.
 	 */
 	private String filterDeviceType;
@@ -250,6 +283,63 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 	 * A filter for source.
 	 */
 	private String filterSource;
+
+	/**
+	 * Retrieves {@link #filterDeviceType}
+	 *
+	 * @return value of {@link #filterDeviceType}
+	 */
+	public String getFilterDeviceType() {
+		return filterDeviceType;
+	}
+
+	/**
+	 * Sets {@link #filterDeviceType} value
+	 *
+	 * @param filterDeviceType new value of {@link #filterDeviceType}
+	 */
+	public void setFilterDeviceType(String filterDeviceType) {
+		this.filterDeviceType = filterDeviceType;
+	}
+
+	/**
+	 * Retrieves {@link #filterSource}
+	 *
+	 * @return value of {@link #filterSource}
+	 */
+	public String getFilterSource() {
+		return filterSource;
+	}
+
+	/**
+	 * Sets {@link #filterSource} value
+	 *
+	 * @param filterSource new value of {@link #filterSource}
+	 */
+	public void setFilterSource(String filterSource) {
+		this.filterSource = filterSource;
+	}
+
+	/**
+	 * Retrieves {@link #historicalProperties}
+	 *
+	 * @return value of {@link #historicalProperties}
+	 */
+	public String getHistoricalProperties() {
+		return String.join(",", this.historicalProperties);
+	}
+
+	/**
+	 * Sets {@link #historicalProperties} value
+	 *
+	 * @param historicalProperties new value of {@link #historicalProperties}
+	 */
+	public void setHistoricalProperties(String historicalProperties) {
+		this.historicalProperties.clear();
+		Arrays.asList(historicalProperties.split(",")).forEach(propertyName -> {
+			this.historicalProperties.add(propertyName.trim());
+		});
+	}
 
 	/**
 	 * Update the status of the device.
@@ -525,7 +615,7 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 	private void filterDevice() throws Exception {
 		JsonNode devicesResponse;
 		if (StringUtils.isNotNullOrEmpty(filterDeviceType) || StringUtils.isNotNullOrEmpty(filterSource)) {
-			devicesResponse = this.doGet(MagicInfoCommand.FILTERING_COMMAND, JsonNode.class);
+			devicesResponse = this.doPost(MagicInfoCommand.FILTERING_COMMAND, createBodyFilteringRequest(), JsonNode.class);
 		} else {
 			devicesResponse = this.doGet(MagicInfoCommand.ALL_DEVICES_COMMAND, JsonNode.class);
 		}
@@ -535,6 +625,32 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 				aggregatedIdList.add(item.get(MagicInfoConstant.DEVICE_ID).asText());
 			}
 		}
+	}
+
+	private JsonNode createBodyFilteringRequest() {
+		List<String> sourceValue = new ArrayList<>();
+		List<String> deviceTypeValue = new ArrayList<>();
+		if (StringUtils.isNotNullOrEmpty(filterDeviceType)) {
+			deviceTypeValue = Arrays.stream(filterDeviceType.split(",")).map(String::trim).collect(Collectors.toList());
+		}
+
+		if (StringUtils.isNotNullOrEmpty(filterSource)) {
+			sourceValue = Arrays.stream(filterSource.split(",")).map(String::trim)
+					.map(item -> defaultSourceValue(EnumTypeHandler.getValueByName(SourceEnum.class, item)))
+					.collect(Collectors.toList());
+		}
+		ObjectNode body = objectMapper.createObjectNode();
+		body.put(MagicInfoConstant.PAGE_SIZE, "400");
+		body.set(MagicInfoConstant.DEVICE_TYPE, objectMapper.valueToTree(deviceTypeValue));
+		body.set(MagicInfoConstant.INPUT_SOURCE, objectMapper.valueToTree(sourceValue));
+		return body;
+	}
+
+	private String defaultSourceValue(String value) {
+		if (MagicInfoConstant.NONE.equals(value)) {
+			return "100000";
+		}
+		return value;
 	}
 
 	/**
@@ -600,6 +716,10 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 					Map<String, String> stats = new HashMap<>();
 					aggregatedDevice.setDeviceOnline(true);
 					mapGeneralInformationProperties(aggregatedDevice.getProperties(), stats);
+					mapQuickControlProperties(aggregatedDevice.getProperties(), stats, advancedControllableProperties);
+					mapDisplayInformationProperties(aggregatedDevice.getProperties(), stats, advancedControllableProperties);
+					mapDynamicStatistic(aggregatedDevice.getProperties(), stats, dynamics);
+
 					aggregatedDevice.setProperties(stats);
 					aggregatedDevice.setControllableProperties(advancedControllableProperties);
 					aggregatedDevice.setDynamicStatistics(dynamics);
@@ -608,8 +728,6 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 			}
 		}
 		checkControl = false;
-		logger.debug(aggregatedDeviceList.get(0).getProperties());
-		logger.debug(aggregatedDeviceList.get(0).getControllableProperties());
 		return aggregatedDeviceList;
 	}
 
@@ -640,6 +758,349 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 		}
 	}
 
+	private void mapQuickControlProperties(Map<String, String> mappingStatistic, Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties) {
+		String value;
+		String propertyName;
+		String group = "QuickControl#";
+		for (QuickControl item : QuickControl.values()) {
+			propertyName = group.concat(item.getName());
+			value = getDefaultValueForNullData(mappingStatistic.get(item.getName()));
+			switch (item) {
+				case POWER:
+					addAdvanceControlProperties(advancedControllableProperties, stats, createSwitch(propertyName, MagicInfoConstant.TRUE.equals(value) ? 1 : 0, MagicInfoConstant.OFF, MagicInfoConstant.ON),
+							MagicInfoConstant.TRUE.equals(value) ? "1" : "0");
+					break;
+				case VOLUME:
+					addAdvanceControlProperties(advancedControllableProperties, stats, createNumeric(propertyName, value), value);
+					break;
+				case MUTE:
+					addAdvanceControlProperties(advancedControllableProperties, stats, createSwitch(propertyName, Integer.parseInt(value), MagicInfoConstant.OFF, MagicInfoConstant.ON), value);
+					break;
+				case DISPLAY_PANEL:
+					value = MagicInfoConstant.NUMBER_ONE.equals(value) ? "0" : "1";
+					addAdvanceControlProperties(advancedControllableProperties, stats, createSwitch(propertyName, Integer.parseInt(value), MagicInfoConstant.OFF, MagicInfoConstant.ON), value);
+					break;
+				case SOURCE:
+					List<String> availableValues = Arrays.stream(EnumTypeHandler.getEnumValues(SourceEnum.class)).collect(Collectors.toList());
+					if (availableValues.contains(value)) {
+						addAdvanceControlProperties(advancedControllableProperties, stats,
+								createDropdown(propertyName, EnumTypeHandler.getEnumNames(SourceEnum.class), EnumTypeHandler.getNameByValue(SourceEnum.class, value)), value);
+					} else {
+						stats.put(propertyName, MagicInfoConstant.NONE);
+					}
+					break;
+				case RESTART:
+					addAdvanceControlProperties(advancedControllableProperties, stats, createButton(propertyName, MagicInfoConstant.RESTART, MagicInfoConstant.RESTARTING, MagicInfoConstant.GRACE_PERIOD),
+							MagicInfoConstant.NONE);
+					break;
+				default:
+					stats.put(propertyName, MagicInfoConstant.NONE);
+			}
+		}
+	}
+
+	/**
+	 * Maps display information properties from a mapping statistic to a target statistics map.
+	 * This method processes specific properties from the provided {@code localCachedStatistic} and updates the {@code stats} map accordingly.
+	 *
+	 * @param stats The target statistics map where the properties will be mapped.
+	 * @param advancedControllableProperties A list to collect advanced controllable properties.
+	 */
+	private void mapDisplayInformationProperties(Map<String, String> mappingStatistic, Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties) {
+		String value;
+		String propertyName;
+		int status;
+		for (DisplayInfo item : DisplayInfo.values()) {
+			propertyName = item.getGroup().concat(item.getName());
+			value = getDefaultValueForNullData(mappingStatistic.get(item.getName()));
+			switch (item) {
+				case DISPLAY_PANEL:
+					value = MagicInfoConstant.NUMBER_ONE.equals(value) ? "0" : "1";
+					addAdvanceControlProperties(advancedControllableProperties, stats, createSwitch(propertyName, Integer.parseInt(value), MagicInfoConstant.OFF, MagicInfoConstant.ON), value);
+					break;
+				case VOLUME:
+				case TEMPERATURE_CONTROL:
+				case LAMP_CONTROL:
+				case BRIGHTNESS:
+				case COLOR:
+				case CONTRAST:
+				case TINT:
+				case SHARPNESS:
+				case PIXEL_SHIFT_VERTICAL:
+				case PIXEL_SHIFT_HORIZONTAL:
+				case PIXEL_SHIFT_TIME:
+					addAdvanceControlProperties(advancedControllableProperties, stats, createNumeric(propertyName, value), value);
+					break;
+				case MIN_VALUE:
+				case MAX_VALUE:
+					if (MagicInfoConstant.NUMBER_ONE.equals(mappingStatistic.get(SCREEN_LAMP_SCHEDULE.getName()))) {
+						addAdvanceControlProperties(advancedControllableProperties, stats, createNumeric(propertyName, value), value);
+					} else {
+						stats.put(propertyName, value);
+					}
+					break;
+				case WEB_BROWSER_HOME_PAGE:
+					status = getSwitchStatus(value);
+					if (status == -1) {
+						stats.put(propertyName, MagicInfoConstant.NONE);
+					} else {
+						addAdvanceControlProperties(advancedControllableProperties, stats, createSwitch(propertyName, status, MagicInfoConstant.SAMSUNG_DISPLAY, MagicInfoConstant.CUSTOM), value);
+					}
+					break;
+				case WEB_BROWSER_PAGE_URL:
+					if (MagicInfoConstant.NUMBER_ONE.equals(mappingStatistic.get(MagicInfoConstant.WEB_BROWSER_HOME_PAGE))) {
+						addAdvanceControlProperties(advancedControllableProperties, stats, createText(propertyName, value), value);
+					}
+					break;
+				case MUTE:
+				case MAX_POWER_SAVING:
+				case PICTURE_ENHANCER:
+				case AUTO_POWER_ON:
+				case REMOTE_CONFIGURATION:
+				case AUTO_SOURCE_SWITCHING:
+				case SCREEN_LAMP_SCHEDULE:
+				case PIXEL_SHIFT:
+					status = getSwitchStatus(value);
+					if (status == -1) {
+						stats.put(propertyName, MagicInfoConstant.NONE);
+					} else {
+						addAdvanceControlProperties(advancedControllableProperties, stats, createSwitch(propertyName, status, MagicInfoConstant.OFF, MagicInfoConstant.ON), value);
+					}
+					break;
+				case WEB_BROWSER_INTERVAL:
+					addAdvanceControlProperties(advancedControllableProperties, stats,
+							createDropdown(propertyName, EnumTypeHandler.getEnumNames(WebBrowserIntervalEnum.class), EnumTypeHandler.getNameByValue(WebBrowserIntervalEnum.class, value)), value);
+					break;
+				case WEB_BROWSER_ZOOM:
+					addAdvanceControlProperties(advancedControllableProperties, stats,
+							createDropdown(propertyName, EnumTypeHandler.getEnumNames(WebBrowserZoomEnum.class), EnumTypeHandler.getNameByValue(WebBrowserZoomEnum.class, value)), value);
+					break;
+				case SOURCE:
+					List<String> availableValues = Arrays.stream(EnumTypeHandler.getEnumValues(SourceEnum.class)).collect(Collectors.toList());
+					if (availableValues.contains(value)) {
+						addAdvanceControlProperties(advancedControllableProperties, stats,
+								createDropdown(propertyName, EnumTypeHandler.getEnumNames(SourceEnum.class), EnumTypeHandler.getNameByValue(SourceEnum.class, value)), value);
+					} else {
+						stats.put(propertyName, MagicInfoConstant.NONE);
+					}
+					break;
+				case COLOR_TONE:
+					addAdvanceControlProperties(advancedControllableProperties, stats,
+							createDropdown(propertyName, EnumTypeHandler.getEnumNames(ColorToneEnum.class), EnumTypeHandler.getNameByValue(ColorToneEnum.class, value)), value);
+					break;
+				case COLOR_TEMPERATURE:
+					availableValues = Arrays.stream(EnumTypeHandler.getEnumValues(ColorTemperatureEnum.class)).collect(Collectors.toList());
+					if (availableValues.contains(value)) {
+						addAdvanceControlProperties(advancedControllableProperties, stats,
+								createDropdown(propertyName, EnumTypeHandler.getEnumNames(ColorTemperatureEnum.class), EnumTypeHandler.getNameByValue(ColorTemperatureEnum.class, value)), value);
+					} else {
+						stats.put(propertyName, MagicInfoConstant.NONE);
+					}
+					break;
+				case PICTURE_SIZE:
+					availableValues = Arrays.stream(EnumTypeHandler.getEnumValues(PictureSizeEnum.class)).collect(Collectors.toList());
+					if (availableValues.contains(value)) {
+						addAdvanceControlProperties(advancedControllableProperties, stats,
+								createDropdown(propertyName, EnumTypeHandler.getEnumNames(PictureSizeEnum.class), EnumTypeHandler.getNameByValue(PictureSizeEnum.class, value)), value);
+					} else {
+						stats.put(propertyName, MagicInfoConstant.NONE);
+					}
+					break;
+				case DIGITAL_CLEAN_VIEW:
+					availableValues = Arrays.stream(EnumTypeHandler.getEnumValues(DigitalCleanViewEnum.class)).collect(Collectors.toList());
+					if (availableValues.contains(value)) {
+						addAdvanceControlProperties(advancedControllableProperties, stats,
+								createDropdown(propertyName, EnumTypeHandler.getEnumNames(DigitalCleanViewEnum.class), EnumTypeHandler.getNameByValue(DigitalCleanViewEnum.class, value)), value);
+					} else {
+						stats.put(propertyName, MagicInfoConstant.NONE);
+					}
+					break;
+				case FILM_MODE:
+					availableValues = Arrays.stream(EnumTypeHandler.getEnumValues(FilmModeEnum.class)).collect(Collectors.toList());
+					if (availableValues.contains(value)) {
+						addAdvanceControlProperties(advancedControllableProperties, stats,
+								createDropdown(propertyName, EnumTypeHandler.getEnumNames(FilmModeEnum.class), EnumTypeHandler.getNameByValue(FilmModeEnum.class, value)), value);
+					} else {
+						stats.put(propertyName, MagicInfoConstant.NONE);
+					}
+					break;
+				case HDMI_BLACK_LEVEL:
+					availableValues = Arrays.stream(EnumTypeHandler.getEnumValues(HDMIBlackLevelEnum.class)).collect(Collectors.toList());
+					if (availableValues.contains(value)) {
+						addAdvanceControlProperties(advancedControllableProperties, stats,
+								createDropdown(propertyName, EnumTypeHandler.getEnumNames(HDMIBlackLevelEnum.class), EnumTypeHandler.getNameByValue(HDMIBlackLevelEnum.class, value)), value);
+					} else {
+						stats.put(propertyName, MagicInfoConstant.NONE);
+					}
+					break;
+				case LED_PICTURE_SIZE:
+					String[] arrayValues = value.split(MagicInfoConstant.SEMICOLON);
+					if (arrayValues.length == 2) {
+						if (MagicInfoConstant.NUMBER_ONE.equals(arrayValues[0])) {
+							stats.put(MagicInfoConstant.PICTURE_PC.concat(MagicInfoConstant.RESOLUTION), arrayValues[1]);
+						}
+						addAdvanceControlProperties(advancedControllableProperties, stats,
+								createDropdown(MagicInfoConstant.PICTURE_PC.concat(MagicInfoConstant.LED_PICTURE_SIZE), EnumTypeHandler.getEnumNames(LEDPictureSizeEnum.class),
+										EnumTypeHandler.getNameByValue(LEDPictureSizeEnum.class, arrayValues[0])), arrayValues[0]);
+					} else {
+						stats.put(MagicInfoConstant.PICTURE_PC.concat(MagicInfoConstant.LED_PICTURE_SIZE), MagicInfoConstant.NONE);
+					}
+					break;
+				case LED_HDR:
+					arrayValues = value.split(MagicInfoConstant.SEMICOLON);
+					if (arrayValues.length == 3) {
+						addAdvanceControlProperties(advancedControllableProperties, stats,
+								createSwitch(MagicInfoConstant.PICTURE_PC.concat(MagicInfoConstant.INVERSE_TONE_MAPPING), getSwitchStatus(arrayValues[0]), MagicInfoConstant.OFF, MagicInfoConstant.ON),
+								arrayValues[0]);
+						addAdvanceControlProperties(advancedControllableProperties, stats,
+								createSwitch(MagicInfoConstant.PICTURE_PC.concat(MagicInfoConstant.DYNAMIC_PEAKING), getSwitchStatus(arrayValues[1]), MagicInfoConstant.OFF, MagicInfoConstant.ON), arrayValues[1]);
+						addAdvanceControlProperties(advancedControllableProperties, stats,
+								createSwitch(MagicInfoConstant.PICTURE_PC.concat(MagicInfoConstant.COLOR_MAPPING), getSwitchStatus(arrayValues[2]), MagicInfoConstant.OFF, MagicInfoConstant.ON), arrayValues[1]);
+					} else {
+						stats.put(MagicInfoConstant.PICTURE_PC.concat(MagicInfoConstant.INVERSE_TONE_MAPPING), MagicInfoConstant.NONE);
+						stats.put(MagicInfoConstant.PICTURE_PC.concat(MagicInfoConstant.DYNAMIC_PEAKING), MagicInfoConstant.NONE);
+						stats.put(MagicInfoConstant.PICTURE_PC.concat(MagicInfoConstant.COLOR_MAPPING), MagicInfoConstant.NONE);
+					}
+					break;
+				case SOUND_MODE:
+					availableValues = Arrays.stream(EnumTypeHandler.getEnumValues(SoundModeEnum.class)).collect(Collectors.toList());
+					if (availableValues.contains(value)) {
+						addAdvanceControlProperties(advancedControllableProperties, stats,
+								createDropdown(propertyName, EnumTypeHandler.getEnumNames(SoundModeEnum.class), EnumTypeHandler.getNameByValue(SoundModeEnum.class, value)), value);
+					} else {
+						stats.put(propertyName, MagicInfoConstant.NONE);
+					}
+					break;
+				case RESTORE_PRIMARY_SOURCE:
+					if (MagicInfoConstant.NUMBER_ONE.equals(mappingStatistic.get(MagicInfoConstant.AUTO_SOURCE_SWITCHING))) {
+						addAdvanceControlProperties(advancedControllableProperties, stats, createSwitch(propertyName, Integer.parseInt(value), MagicInfoConstant.OFF, MagicInfoConstant.ON), value);
+					}
+					break;
+				case PRIMARY_SOURCE:
+				case SECONDARY_SOURCE:
+					if (MagicInfoConstant.NUMBER_ONE.equals(mappingStatistic.get(MagicInfoConstant.AUTO_SOURCE_SWITCHING))) {
+						addAdvanceControlProperties(advancedControllableProperties, stats,
+								createDropdown(propertyName, EnumTypeHandler.getEnumNames(SourceEnum.class), EnumTypeHandler.getNameByValue(SourceEnum.class, value)), value);
+					}
+					break;
+				case MAX_TIME_HOUR:
+				case MIN_TIME_HOUR:
+					String time;
+					if (MagicInfoConstant.NUMBER_ONE.equals(mappingStatistic.get(SCREEN_LAMP_SCHEDULE.getName()))) {
+						time = convert12HourTo24Hour(value);
+						if (!MagicInfoConstant.NONE.equals(time)) {
+							String hour = time.split(MagicInfoConstant.COLON)[0];
+							addAdvanceControlProperties(advancedControllableProperties, stats, createDropdown(propertyName, createArrayNumber(0, 23), hour), hour);
+						} else {
+							stats.put(propertyName, MagicInfoConstant.NONE);
+						}
+					} else {
+						stats.put(propertyName.replace("(hour)", MagicInfoConstant.EMPTY), value);
+					}
+					break;
+				case TIMER_END_TIME_HOUR:
+				case TIMER_START_TIME_HOUR:
+					time = convert12HourTo24Hour(value);
+					if (!MagicInfoConstant.NONE.equals(time)) {
+						String hour = time.split(MagicInfoConstant.COLON)[0];
+						addAdvanceControlProperties(advancedControllableProperties, stats, createDropdown(propertyName, createArrayNumber(0, 23), hour), hour);
+					} else {
+						stats.put(propertyName, MagicInfoConstant.NONE);
+					}
+					break;
+				case MAX_TIME_MINUTE:
+				case MIN_TIME_MINUTE:
+					if (MagicInfoConstant.NUMBER_ONE.equals(mappingStatistic.get(SCREEN_LAMP_SCHEDULE.getName()))) {
+						time = convert12HourTo24Hour(value);
+						if (!MagicInfoConstant.NONE.equals(time)) {
+							String minute = time.split(MagicInfoConstant.COLON)[1];
+							addAdvanceControlProperties(advancedControllableProperties, stats, createDropdown(propertyName, createArrayNumber(0, 59), minute), minute);
+						} else {
+							stats.put(propertyName, MagicInfoConstant.NONE);
+						}
+					}
+					break;
+				case TIMER_START_TIME_MIN:
+				case TIMER_END_TIME_MIN:
+					time = convert12HourTo24Hour(value);
+					if (!MagicInfoConstant.NONE.equals(time)) {
+						String minute = time.split(MagicInfoConstant.COLON)[1];
+						addAdvanceControlProperties(advancedControllableProperties, stats, createDropdown(propertyName, createArrayNumber(0, 59), minute), minute);
+					} else {
+						stats.put(propertyName, MagicInfoConstant.NONE);
+					}
+					break;
+				case TIMER:
+					availableValues = Arrays.stream(EnumTypeHandler.getEnumValues(TimerEnum.class)).collect(Collectors.toList());
+					if (availableValues.contains(value)) {
+						addAdvanceControlProperties(advancedControllableProperties, stats,
+								createDropdown(propertyName, EnumTypeHandler.getEnumNames(TimerEnum.class), EnumTypeHandler.getNameByValue(TimerEnum.class, value)), value);
+					} else {
+						stats.put(propertyName, MagicInfoConstant.NONE);
+					}
+					break;
+				case TIMER_MODE:
+					if (MagicInfoConstant.NUMBER_ONE.equals(mappingStatistic.get(MagicInfoConstant.TIMER))) {
+						addAdvanceControlProperties(advancedControllableProperties, stats,
+								createDropdown(propertyName, EnumTypeHandler.getEnumNames(RepeatModeEnum.class), EnumTypeHandler.getNameByValue(RepeatModeEnum.class, value)), value);
+					} else if (MagicInfoConstant.NUMBER_TWO.equals(mappingStatistic.get(MagicInfoConstant.TIMER))) {
+						addAdvanceControlProperties(advancedControllableProperties, stats,
+								createDropdown(propertyName, EnumTypeHandler.getEnumNames(IntervalModeEnum.class), EnumTypeHandler.getNameByValue(IntervalModeEnum.class, value)), value);
+					}
+					break;
+				case TIMER_PERIOD:
+					if (MagicInfoConstant.NUMBER_ONE.equals(mappingStatistic.get(MagicInfoConstant.TIMER))) {
+						addAdvanceControlProperties(advancedControllableProperties, stats, createNumeric(propertyName, value), value);
+					}
+					break;
+				case TIMER_TIME:
+					if (MagicInfoConstant.NUMBER_ONE.equals(mappingStatistic.get(MagicInfoConstant.TIMER))) {
+						addAdvanceControlProperties(advancedControllableProperties, stats, createDropdown(propertyName, new String[] { "1", "10", "20", "30", "40", "50" }, value), value);
+					}
+					break;
+				case IMMEDIATE_DISPLAY:
+					availableValues = Arrays.stream(EnumTypeHandler.getEnumValues(ImmediateDisplayEnum.class)).collect(Collectors.toList());
+					if (availableValues.contains(value)) {
+						addAdvanceControlProperties(advancedControllableProperties, stats,
+								createDropdown(propertyName, EnumTypeHandler.getEnumNames(ImmediateDisplayEnum.class), EnumTypeHandler.getNameByValue(ImmediateDisplayEnum.class, value)), value);
+					} else {
+						stats.put(propertyName, MagicInfoConstant.NONE);
+					}
+					break;
+				default:
+					stats.put(propertyName, value);
+			}
+		}
+	}
+
+	/**
+	 * Maps dynamic statistics properties from a source mapping to either the 'stats' or 'dynamics' map,
+	 * based on whether the property is listed in the 'historicalProperties' set.
+	 *
+	 * @param stats A map to store properties that are not listed in 'historicalProperties' with their values.
+	 * @param dynamics A map to store properties that are listed in 'historicalProperties' with their values.
+	 */
+	private void mapDynamicStatistic(Map<String, String> mappingStatistic, Map<String, String> stats, Map<String, String> dynamics) {
+		for (DynamicStatisticsDefinition property : DynamicStatisticsDefinition.values()) {
+			String propertyName = property.getName();
+			String groupName = property.getGroup();
+			String propertyValue = mappingStatistic.get(propertyName);
+			boolean propertyListed = false;
+			if (!historicalProperties.isEmpty()) {
+				if (propertyName.contains(MagicInfoConstant.HASH)) {
+					propertyListed = historicalProperties.contains(propertyName.split(MagicInfoConstant.HASH)[1]);
+				} else {
+					propertyListed = historicalProperties.contains(propertyName);
+				}
+			}
+			if (propertyListed && StringUtils.isNotNullOrEmpty(propertyValue)) {
+				dynamics.put(groupName + propertyName, propertyValue);
+			} else {
+				stats.put(groupName + propertyName, getDefaultValueForNullData(propertyValue));
+			}
+		}
+	}
+
 	/**
 	 * Combines two JSON nodes into a single JSON node.
 	 *
@@ -656,6 +1117,51 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 			return combinedNode;
 		}
 		return null;
+	}
+
+	/**
+	 * Creates an array of formatted numbers within the specified range.
+	 *
+	 * This method generates an array of strings representing numbers within the given range [min, max].
+	 * The numbers in the range are formatted using the specified format defined by `SolsticeConstant.NUMBER_FORMAT`.
+	 *
+	 * @param min The minimum value of the range (inclusive).
+	 * @param max The maximum value of the range (inclusive).
+	 * @return An array of strings containing formatted numbers within the specified range.
+	 */
+	private String[] createArrayNumber(int min, int max) {
+		return IntStream.rangeClosed(min, max).mapToObj(minute -> String.format("%02d", minute)).toArray(String[]::new);
+	}
+
+	/**
+	 * Converts a 12-hour formatted time string to a 24-hour formatted time string.
+	 *
+	 * @param time12h The input time string in 12-hour format (e.g., "12:02AM" or "12:02PM").
+	 * @return The converted time string in 24-hour format (e.g., "00:02" or "12:02").
+	 */
+	private String convert12HourTo24Hour(String time12h) {
+		try {
+			String[] parts = time12h.split(MagicInfoConstant.COLON);
+			if (parts.length == 2) {
+				int hour = Integer.parseInt(parts[0]);
+				String minutesAndAMPM = parts[1];
+
+				if (minutesAndAMPM.endsWith("AM")) {
+					if (hour == 12) {
+						hour = 0;
+					}
+				} else {
+					if (hour != 12) {
+						hour += 12;
+					}
+				}
+				String minutes = minutesAndAMPM.substring(0, 2);
+				return String.format("%02d:%s", hour, minutes);
+			}
+			return MagicInfoConstant.NONE;
+		} catch (Exception e) {
+			return MagicInfoConstant.NONE;
+		}
 	}
 
 	/**
@@ -736,5 +1242,124 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 	 */
 	private String getDefaultValueForNullData(String value) {
 		return StringUtils.isNotNullOrEmpty(value) ? value : MagicInfoConstant.NONE;
+	}
+
+	/**
+	 * Converts a switch status value to an integer representation.
+	 *
+	 * @param value The switch status value, which can be "1" (ON), "0" (OFF), or any other value.
+	 * @return An integer representation of the switch status: 1 for ON, 0 for OFF, or -1 for any other value.
+	 */
+	private int getSwitchStatus(String value) {
+		if (MagicInfoConstant.NUMBER_ONE.equals(value)) {
+			return 1;
+		}
+		if (MagicInfoConstant.ZERO.equals(value)) {
+			return 0;
+		}
+		return -1;
+	}
+
+	/**
+	 * Add advancedControllableProperties if advancedControllableProperties different empty
+	 *
+	 * @param advancedControllableProperties advancedControllableProperties is the list that store all controllable properties
+	 * @param stats store all statistics
+	 * @param property the property is item advancedControllableProperties
+	 * @return String response
+	 * @throws IllegalStateException when exception occur
+	 */
+	private void addAdvanceControlProperties(List<AdvancedControllableProperty> advancedControllableProperties, Map<String, String> stats, AdvancedControllableProperty property, String value) {
+		if (property != null) {
+			for (AdvancedControllableProperty controllableProperty : advancedControllableProperties) {
+				if (controllableProperty.getName().equals(property.getName())) {
+					advancedControllableProperties.remove(controllableProperty);
+					break;
+				}
+			}
+			if (StringUtils.isNotNullOrEmpty(value)) {
+				stats.put(property.getName(), value);
+			} else {
+				stats.put(property.getName(), MagicInfoConstant.EMPTY);
+			}
+			advancedControllableProperties.add(property);
+		}
+	}
+
+	/**
+	 * Create text is control property for metric
+	 *
+	 * @param name the name of the property
+	 * @param stringValue character string
+	 * @return AdvancedControllableProperty Text instance
+	 */
+	private AdvancedControllableProperty createText(String name, String stringValue) {
+		AdvancedControllableProperty.Text text = new AdvancedControllableProperty.Text();
+		return new AdvancedControllableProperty(name, new Date(), text, stringValue);
+	}
+
+	/**
+	 * Create switch is control property for metric
+	 *
+	 * @param name the name of property
+	 * @param status initial status (0|1)
+	 * @return AdvancedControllableProperty switch instance
+	 */
+	private AdvancedControllableProperty createSwitch(String name, int status, String labelOff, String labelOn) {
+		AdvancedControllableProperty.Switch toggle = new AdvancedControllableProperty.Switch();
+		toggle.setLabelOff(labelOff);
+		toggle.setLabelOn(labelOn);
+
+		AdvancedControllableProperty advancedControllableProperty = new AdvancedControllableProperty();
+		advancedControllableProperty.setName(name);
+		advancedControllableProperty.setValue(status);
+		advancedControllableProperty.setType(toggle);
+		advancedControllableProperty.setTimestamp(new Date());
+
+		return advancedControllableProperty;
+	}
+
+	/**
+	 * Create numeric is control property for metric
+	 *
+	 * @param name the name of the property
+	 * @param stringValue character string
+	 * @return AdvancedControllableProperty Text instance
+	 */
+	private AdvancedControllableProperty createNumeric(String name, String stringValue) {
+		AdvancedControllableProperty.Numeric text = new AdvancedControllableProperty.Numeric();
+		return new AdvancedControllableProperty(name, new Date(), text, stringValue);
+	}
+
+	/**
+	 * Create a button.
+	 *
+	 * @param name name of the button
+	 * @param label label of the button
+	 * @param labelPressed label of the button after pressing it
+	 * @param gracePeriod grace period of button
+	 * @return This returns the instance of {@link AdvancedControllableProperty} type Button.
+	 */
+	private AdvancedControllableProperty createButton(String name, String label, String labelPressed, long gracePeriod) {
+		AdvancedControllableProperty.Button button = new AdvancedControllableProperty.Button();
+		button.setLabel(label);
+		button.setLabelPressed(labelPressed);
+		button.setGracePeriod(gracePeriod);
+		return new AdvancedControllableProperty(name, new Date(), button, "");
+	}
+
+	/***
+	 * Create dropdown advanced controllable property
+	 *
+	 * @param name the name of the control
+	 * @param initialValue initial value of the control
+	 * @return AdvancedControllableProperty dropdown instance
+	 */
+	private AdvancedControllableProperty createDropdown(String name, String[] values, String initialValue) {
+		AdvancedControllableProperty.DropDown dropDown = new AdvancedControllableProperty.DropDown();
+		dropDown.setOptions(values);
+		dropDown.setLabels(values);
+
+		return new AdvancedControllableProperty(name, new Date(), dropDown, initialValue);
 	}
 }
