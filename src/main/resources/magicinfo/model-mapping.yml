@@ -7,9 +7,9 @@ models:
         deviceId: get("generalConf")?.get("deviceId")
         deviceModel: get("generalConf")?.get("deviceModelName")
         deviceOnline: get("generalConf")?.get("power")
+        deviceName: get("generalConf")?.get("deviceName")
       properties:
         Power: get("generalConf")?.get("power")
-        DeviceName: get("generalConf")?.get("deviceName")
         MACAddress: get("generalConf")?.get("macAddress")
         IP: get("generalConf")?.get("ipAddress")
         Location: get("generalConf")?.get("location")
@@ -48,7 +48,7 @@ models:
         Mute: get("basicMute")
         PanelOnTime(hour): get("diagnosisPanelOnTime")
 
-        CurrentTemperature(C): get("diagnosisMonitorTemperature")
+        Temperature(C): get("diagnosisMonitorTemperature")
         TemperatureControl(C): get("diagnosisAlarmTemperature")
 
         LampControl(%): get("mntManual")
@@ -64,9 +64,6 @@ models:
         FilmMode: get("pvFilmmode")
         HDMIBlackLevel: get("pvHdmiBlackLevel")
 
-        LEDPictureSize: get("ledPictureSize")
-        LED HDR: get("ledHdr")
-
         Mode: get("soundMode")
 
         PictureEnhancer: get("pictureEnhancer")
@@ -79,11 +76,9 @@ models:
         SecondarySource: get("autoSourceSwitching")?.get("autoSourceSecondary")
 
         ScreenLampSchedule: get("mntAuto")?.get("mntAutoIsEnable")
-        MaxTime(hour): get("mntAuto")?.get("mntAutoMaxTime")
-        MaxTime(minute): get("mntAuto")?.get("mntAutoMaxTime")
+        MaxTime: get("mntAuto")?.get("mntAutoMaxTime")
         MaxValue: get("mntAuto")?.get("mntAutoMaxValue")
-        MinTime(hour): get("mntAuto")?.get("mntAutoMinTime")
-        MinTime(minute): get("mntAuto")?.get("mntAutoMinTime")
+        MinTime: get("mntAuto")?.get("mntAutoMinTime")
         MinValue: get("mntAuto")?.get("mntAutoMinValue")
 
         ImmediateDisplay: get("mntSafetyScreenRun")
@@ -95,7 +90,7 @@ models:
 
         TimerMode: get("mntSafetyScreenTimer")?.get("scrSafeMode")
         TimerPeriod(hour): get("mntSafetyScreenTimer")?.get("scrSafePeriod")
-        TimerTime(sec): get("mntSafetyScreenTimer")?.get("scrSafePeriod")
+        TimerTime(sec): get("mntSafetyScreenTimer")?.get("scrSafeTime")
         TimerStartTime(minute): get("mntSafetyScreenTimer")?.get("scrSafeStartTime")
         TimerStartTime(hour): get("mntSafetyScreenTimer")?.get("scrSafeStartTime")
         TimerEndTime(minute): get("mntSafetyScreenTimer")?.get("scrSafeEndTime")

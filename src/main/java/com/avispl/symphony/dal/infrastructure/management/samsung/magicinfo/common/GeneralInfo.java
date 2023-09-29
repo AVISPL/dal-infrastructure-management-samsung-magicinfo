@@ -13,7 +13,6 @@ package com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.comm
  * @since 1.0.0
  */
 public enum GeneralInfo {
-	DEVICE_NAME("DeviceName"),
 	MAC_ADDRESS("MACAddress"),
 	IP("IP"),
 	LOCATION("Location"),
@@ -28,7 +27,6 @@ public enum GeneralInfo {
 	MEMORY_SIZE("MemorySize(byte)"),
 	STORAGE_SIZE("StorageSize(byte)"),
 	VIDEO_CARD("VideoCard"),
-	VIDEO_MEMORY("VideoMemory"),
 	VIDEO_DRIVER("VideoDriver"),
 	DISK_SPACE_USAGE("DiskSpaceUsage"),
 	AVAILABLE_CAPACITY("AvailableCapacity"),
@@ -37,6 +35,7 @@ public enum GeneralInfo {
 	RESOLUTION("Resolution"),
 	CODE("Code"),
 	SERIAL_KEY("SerialKey"),
+	PANEL_ON_TIME("PanelOnTime(hour)"),
 	;
 	private final String name;
 

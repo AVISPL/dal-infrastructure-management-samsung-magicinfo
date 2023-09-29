@@ -4,7 +4,7 @@
 
 package com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo;
 
-import static com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.DisplayInfo.SCREEN_LAMP_SCHEDULE;
+import static com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.DisplayInfo.*;
 
 import java.io.IOException;
 import java.net.ConnectException;
@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -31,12 +32,13 @@ import java.util.stream.IntStream;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.util.CollectionUtils;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import javax.security.auth.login.FailedLoginException;
 
 import com.avispl.symphony.api.dal.control.Controller;
 import com.avispl.symphony.api.dal.dto.control.AdvancedControllableProperty;
@@ -56,8 +58,8 @@ import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.commo
 import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.GeneralInfo;
 import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.MagicInfoCommand;
 import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.MagicInfoConstant;
-import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.QuickControl;
 import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.SystemInfo;
+import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.filter.FunctionFilterEnum;
 import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.general.SourceEnum;
 import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.general.WebBrowserIntervalEnum;
 import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.general.WebBrowserZoomEnum;
@@ -66,14 +68,13 @@ import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.commo
 import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.picture.DigitalCleanViewEnum;
 import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.picture.FilmModeEnum;
 import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.picture.HDMIBlackLevelEnum;
-import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.picture.LEDPictureSizeEnum;
 import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.picture.PictureSizeEnum;
 import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.screen.ImmediateDisplayEnum;
 import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.screen.IntervalModeEnum;
 import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.screen.RepeatModeEnum;
 import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.screen.TimerEnum;
 import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.sound.SoundModeEnum;
-import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.dto.DeviceType;
+import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.dto.WebBrowserUrl;
 import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.statistics.DynamicStatisticsDefinition;
 import com.avispl.symphony.dal.util.StringUtils;
 
@@ -222,6 +223,9 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 	 */
 	private AggregatedDeviceProcessor aggregatedDeviceProcessor;
 
+	/**
+	 * local cached statistic
+	 */
 	Map<String, Map<String, String>> localCachedStatistic = new HashMap<>();
 
 	/**
@@ -235,7 +239,7 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 	private List<AggregatedDevice> aggregatedDeviceList = Collections.synchronizedList(new ArrayList<>());
 
 	/**
-	 *
+	 * check control
 	 */
 	private boolean checkControl = false;
 
@@ -265,11 +269,6 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 	private List<String> aggregatedIdList = Collections.synchronizedList(new ArrayList<>());
 
 	/**
-	 * A list of device types, synchronized for thread safety.
-	 */
-	private List<DeviceType> deviceTypeList = Collections.synchronizedList(new ArrayList<>());
-
-	/**
 	 * Configurable property for historical properties, comma separated values kept as set locally
 	 */
 	private Set<String> historicalProperties = new HashSet<>();
@@ -283,6 +282,11 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 	 * A filter for source.
 	 */
 	private String filterSource;
+
+	/**
+	 * A filter for source.
+	 */
+	private String filterFunction;
 
 	/**
 	 * Retrieves {@link #filterDeviceType}
@@ -318,6 +322,24 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 	 */
 	public void setFilterSource(String filterSource) {
 		this.filterSource = filterSource;
+	}
+
+	/**
+	 * Retrieves {@link #filterFunction}
+	 *
+	 * @return value of {@link #filterFunction}
+	 */
+	public String getFilterFunction() {
+		return filterFunction;
+	}
+
+	/**
+	 * Sets {@link #filterFunction} value
+	 *
+	 * @param filterFunction new value of {@link #filterFunction}
+	 */
+	public void setFilterFunction(String filterFunction) {
+		this.filterFunction = filterFunction;
 	}
 
 	/**
@@ -425,7 +447,7 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 		reentrantLock.lock();
 		try {
 			if (!checkValidApiToken()) {
-				throw new ResourceNotReachableException("API Token cannot be null or empty, please enter valid API token in the password and username field.");
+				throw new FailedLoginException("API Token cannot be null or empty, please enter valid password and username field.");
 			}
 			Map<String, String> statistics = new HashMap<>();
 			ExtendedStatistics extendedStatistics = new ExtendedStatistics();
@@ -444,7 +466,150 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 	 */
 	@Override
 	public void controlProperty(ControllableProperty controllableProperty) throws Exception {
+		String property = controllableProperty.getProperty();
+		String deviceId = controllableProperty.getDeviceId();
+		String value = String.valueOf(controllableProperty.getValue());
+		String requestValue;
 
+		String[] propertyList = property.split(MagicInfoConstant.HASH);
+		String propertyName = property;
+		if (property.contains(MagicInfoConstant.HASH)) {
+			propertyName = propertyList[1];
+		}
+
+		reentrantLock.lock();
+		try {
+			Optional<AggregatedDevice> aggregatedDevice = aggregatedDeviceList.stream().filter(item -> item.getDeviceId().equals(deviceId)).findFirst();
+			if (aggregatedDevice.isPresent()) {
+				Map<String, String> stats = aggregatedDevice.get().getProperties();
+				List<AdvancedControllableProperty> advancedControllableProperties = aggregatedDevice.get().getControllableProperties();
+				Map<String, String> localCachedValue = localCachedStatistic.get(deviceId);
+				boolean controlPropagated = true;
+				DisplayInfo propertyItem = getByName(propertyName);
+				switch (propertyItem) {
+					case VOLUME:
+					case LAMP_CONTROL:
+					case BRIGHTNESS:
+					case CONTRAST:
+					case SHARPNESS:
+					case COLOR:
+					case TINT:
+						value = checkValidInput(0, 100, value);
+						sendControlRequest(propertyItem, deviceId, value);
+						updateLocalCachedValue(deviceId, propertyName, value);
+						break;
+					case TEMPERATURE_CONTROL:
+						value = checkValidInput(75, 124, value);
+						sendControlRequest(propertyItem, deviceId, value);
+						updateLocalCachedValue(deviceId, propertyName, value);
+						break;
+					case COLOR_TONE:
+						requestValue = EnumTypeHandler.getValueByName(ColorToneEnum.class, value);
+						sendControlRequest(propertyItem, deviceId, requestValue);
+						updateLocalCachedValue(deviceId, propertyName, requestValue);
+						break;
+					case COLOR_TEMPERATURE:
+						requestValue = EnumTypeHandler.getValueByName(ColorTemperatureEnum.class, value);
+						sendControlRequest(propertyItem, deviceId, requestValue);
+						updateLocalCachedValue(deviceId, propertyName, requestValue);
+						break;
+					case PICTURE_SIZE:
+						requestValue = EnumTypeHandler.getValueByName(PictureSizeEnum.class, value);
+						sendControlRequest(propertyItem, deviceId, requestValue);
+						updateLocalCachedValue(deviceId, propertyName, requestValue);
+						break;
+					case DIGITAL_CLEAN_VIEW:
+						requestValue = EnumTypeHandler.getValueByName(DigitalCleanViewEnum.class, value);
+						sendControlRequest(propertyItem, deviceId, requestValue);
+						updateLocalCachedValue(deviceId, propertyName, requestValue);
+						break;
+					case FILM_MODE:
+						requestValue = EnumTypeHandler.getValueByName(FilmModeEnum.class, value);
+						sendControlRequest(propertyItem, deviceId, requestValue);
+						updateLocalCachedValue(deviceId, propertyName, requestValue);
+						break;
+					case HDMI_BLACK_LEVEL:
+						requestValue = EnumTypeHandler.getValueByName(HDMIBlackLevelEnum.class, value);
+						sendControlRequest(propertyItem, deviceId, requestValue);
+						updateLocalCachedValue(deviceId, propertyName, requestValue);
+						break;
+					case SOUND_MODE:
+						requestValue = EnumTypeHandler.getValueByName(SoundModeEnum.class, value);
+						sendControlRequest(propertyItem, deviceId, requestValue);
+						updateLocalCachedValue(deviceId, propertyName, requestValue);
+						break;
+					case SOURCE:
+						requestValue = EnumTypeHandler.getValueByName(SourceEnum.class, value);
+						sendControlRequest(propertyItem, deviceId, requestValue);
+						updateLocalCachedValue(deviceId, propertyName, requestValue);
+						break;
+					case MUTE:
+					case PICTURE_ENHANCER:
+					case REMOTE_CONFIGURATION:
+					case MAX_POWER_SAVING:
+					case AUTO_POWER_ON:
+						sendControlRequest(propertyItem, deviceId, value);
+						updateLocalCachedValue(deviceId, propertyName, value);
+						break;
+					case DISPLAY_PANEL:
+						requestValue = MagicInfoConstant.NUMBER_ONE.equals(value) ? "0" : "1";
+						sendControlRequest(propertyItem, deviceId, requestValue);
+						updateLocalCachedValue(deviceId, propertyName, requestValue);
+						break;
+					case WEB_BROWSER_ZOOM:
+						requestValue = EnumTypeHandler.getValueByName(WebBrowserZoomEnum.class, value);
+						WebBrowserUrl webBrowserUrl = new WebBrowserUrl(false, false, false, false, localCachedValue.get(WEB_BROWSER_INTERVAL.getName()), requestValue,
+								localCachedValue.get(WEB_BROWSER_HOME_PAGE.getName()),
+								localCachedValue.get(WEB_BROWSER_PAGE_URL.getName()),
+								true);
+						sendGroupControl(propertyItem, deviceId, requestValue, MagicInfoConstant.WEB_BROWSER_URL, webBrowserUrl);
+						updateLocalCachedValue(deviceId, propertyName, requestValue);
+						break;
+					case WEB_BROWSER_INTERVAL:
+						requestValue = EnumTypeHandler.getValueByName(WebBrowserIntervalEnum.class, value);
+						webBrowserUrl = new WebBrowserUrl(false, false, false, false, requestValue, localCachedValue.get(WEB_BROWSER_ZOOM.getName()), localCachedValue.get(WEB_BROWSER_HOME_PAGE.getName()),
+								localCachedValue.get(WEB_BROWSER_PAGE_URL.getName()),
+								true);
+						sendGroupControl(propertyItem, deviceId, requestValue, MagicInfoConstant.WEB_BROWSER_URL, webBrowserUrl);
+						updateLocalCachedValue(deviceId, propertyName, requestValue);
+						break;
+					case WEB_BROWSER_PAGE_URL:
+						webBrowserUrl = new WebBrowserUrl(false, false, false, false, localCachedValue.get(WEB_BROWSER_INTERVAL.getName()), localCachedValue.get(WEB_BROWSER_ZOOM.getName()),
+								localCachedValue.get(WEB_BROWSER_HOME_PAGE.getName()), value, true);
+						sendGroupControl(propertyItem, deviceId, value, MagicInfoConstant.WEB_BROWSER_URL, webBrowserUrl);
+						updateLocalCachedValue(deviceId, propertyName, value);
+						break;
+					case WEB_BROWSER_HOME_PAGE:
+						webBrowserUrl = new WebBrowserUrl(false, false, false, false, localCachedValue.get(WEB_BROWSER_INTERVAL.getName()), localCachedValue.get(WEB_BROWSER_ZOOM.getName()),
+								value, localCachedValue.get(WEB_BROWSER_PAGE_URL.getName()), true);
+						sendGroupControl(propertyItem, deviceId, value, MagicInfoConstant.WEB_BROWSER_URL, webBrowserUrl);
+						if (MagicInfoConstant.ZERO.equals(value)) {
+							removeValueForTheControllableProperty(stats, advancedControllableProperties, MagicInfoConstant.DISPLAY_CONTROLS_GROUP.concat(WEB_BROWSER_PAGE_URL.getName()));
+						} else {
+							String referenceValue = localCachedValue.get(WEB_BROWSER_PAGE_URL.getName());
+							addValueForTheControllableProperty(stats, advancedControllableProperties, createText(MagicInfoConstant.DISPLAY_CONTROLS_GROUP.concat(WEB_BROWSER_PAGE_URL.getName()), referenceValue),
+									referenceValue);
+						}
+						updateListAggregatedDevice(deviceId, stats, advancedControllableProperties);
+						updateLocalCachedValue(deviceId, propertyName, value);
+						break;
+					default:
+						if (logger.isWarnEnabled()) {
+							logger.warn(String.format("Unable to execute %s command on device %s: Not Supported", property, deviceId));
+						}
+						controlPropagated = false;
+						break;
+				}
+				if (controlPropagated) {
+					checkControl = true;
+					updateLocalControlValue(deviceId, property, value);
+				}
+			} else {
+				throw new IllegalArgumentException(String.format("Unable to control property: %s as the device does not exist.", property));
+			}
+		} finally {
+			reentrantLock.unlock();
+		}
 	}
 
 	/**
@@ -452,7 +617,16 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 	 */
 	@Override
 	public void controlProperties(List<ControllableProperty> controllableProperties) throws Exception {
-
+		if (CollectionUtils.isEmpty(controllableProperties)) {
+			throw new IllegalArgumentException("ControllableProperties can not be null or empty");
+		}
+		for (ControllableProperty p : controllableProperties) {
+			try {
+				controlProperty(p);
+			} catch (Exception e) {
+				logger.error(String.format("Error when control property %s", p.getProperty()), e);
+			}
+		}
 	}
 
 	/**
@@ -461,14 +635,15 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 	@Override
 	public List<AggregatedDevice> retrieveMultipleStatistics() throws Exception {
 		if (!aggregatedIdList.isEmpty()) {
-			if (checkValidApiToken()) {
-				if (executorService == null) {
-					executorService = Executors.newFixedThreadPool(1);
-					executorService.submit(deviceDataLoader = new MagicInfoDataLoader());
-				}
-				nextDevicesCollectionIterationTimestamp = System.currentTimeMillis();
-				updateValidRetrieveStatisticsTimestamp();
+			if (!checkValidApiToken()) {
+				throw new FailedLoginException("API Token cannot be null or empty, please enter valid password and username field.");
 			}
+			if (executorService == null) {
+				executorService = Executors.newFixedThreadPool(1);
+				executorService.submit(deviceDataLoader = new MagicInfoDataLoader());
+			}
+			nextDevicesCollectionIterationTimestamp = System.currentTimeMillis();
+			updateValidRetrieveStatisticsTimestamp();
 			if (cachedAggregatedDeviceList.isEmpty()) {
 				return cachedAggregatedDeviceList;
 			}
@@ -531,7 +706,6 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 		cachedAggregatedDeviceList.clear();
 		aggregatedDeviceList.clear();
 		aggregatedIdList.clear();
-		deviceTypeList.clear();
 		localCachedStatistic.clear();
 		super.internalDestroy();
 	}
@@ -552,7 +726,7 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 	 *
 	 * @return boolean
 	 */
-	private boolean checkValidApiToken() {
+	private boolean checkValidApiToken() throws Exception {
 		if (StringUtils.isNullOrEmpty(getLogin()) || StringUtils.isNullOrEmpty(getPassword())) {
 			return false;
 		}
@@ -567,7 +741,7 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 	 *
 	 * @return the token string
 	 */
-	private String getToken() {
+	private String getToken() throws Exception {
 		String token = MagicInfoConstant.EMPTY;
 		tokenExpire = System.currentTimeMillis();
 		Map<String, String> params = new HashMap<>();
@@ -579,7 +753,7 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 				token = response.get(MagicInfoConstant.TOKEN).asText();
 			}
 		} catch (Exception e) {
-			throw new ResourceNotReachableException("Can't get token from username and password", e);
+			throw new FailedLoginException("Failed to retrieve an access token for account with from client id and client secret. Please check client id and client secret");
 		}
 		return token;
 	}
@@ -590,18 +764,9 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 	private void retrieveSystemInfo() {
 		try {
 			aggregatorResponse = this.doGet(MagicInfoCommand.DEVICE_DASHBOARD, JsonNode.class);
-			JsonNode deviceTypeResponse = this.doGet(MagicInfoCommand.DEVICE_TYPE_COMMAND, JsonNode.class);
-			if (deviceTypeResponse != null && deviceTypeResponse.has(MagicInfoConstant.ITEMS) && deviceTypeResponse.get(MagicInfoConstant.ITEMS).has(MagicInfoConstant.DEVICE_LIST)) {
-				deviceTypeList.clear();
-				deviceTypeList = objectMapper.readValue(deviceTypeResponse.get(MagicInfoConstant.ITEMS).get(MagicInfoConstant.DEVICE_LIST).toString(), new TypeReference<List<DeviceType>>() {
-				});
-			}
-
 			filterDevice();
 		} catch (Exception e) {
-			aggregatorResponse = objectMapper.createObjectNode();
-			aggregatedIdList.clear();
-			logger.error(String.format("Error when get system information, %s", e));
+			throw new ResourceNotReachableException("Error when get system information.", e);
 		}
 	}
 
@@ -613,44 +778,74 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 	 * @throws Exception If an error occurs while filtering devices.
 	 */
 	private void filterDevice() throws Exception {
-		JsonNode devicesResponse;
-		if (StringUtils.isNotNullOrEmpty(filterDeviceType) || StringUtils.isNotNullOrEmpty(filterSource)) {
-			devicesResponse = this.doPost(MagicInfoCommand.FILTERING_COMMAND, createBodyFilteringRequest(), JsonNode.class);
-		} else {
-			devicesResponse = this.doGet(MagicInfoCommand.ALL_DEVICES_COMMAND, JsonNode.class);
-		}
-		if (devicesResponse != null && devicesResponse.has(MagicInfoConstant.ITEMS)) {
-			aggregatedIdList.clear();
-			for (JsonNode item : devicesResponse.get(MagicInfoConstant.ITEMS)) {
-				aggregatedIdList.add(item.get(MagicInfoConstant.DEVICE_ID).asText());
+		try {
+			JsonNode devicesResponse = null;
+			if (StringUtils.isNotNullOrEmpty(filterDeviceType) || StringUtils.isNotNullOrEmpty(filterSource) || StringUtils.isNotNullOrEmpty(filterFunction)) {
+				JsonNode body = createBodyFilteringRequest();
+				if (checkNoneValueInJsonArray(body.get(MagicInfoConstant.INPUT_FUNCTION)) && checkNoneValueInJsonArray(body.get(MagicInfoConstant.INPUT_SOURCE))) {
+					devicesResponse = this.doPost(MagicInfoCommand.FILTERING_COMMAND, body, JsonNode.class);
+				}
+			} else {
+				devicesResponse = this.doGet(MagicInfoCommand.ALL_DEVICES_COMMAND, JsonNode.class);
 			}
+			aggregatedIdList.clear();
+			if (devicesResponse != null && devicesResponse.has(MagicInfoConstant.ITEMS)) {
+				for (JsonNode item : devicesResponse.get(MagicInfoConstant.ITEMS)) {
+					aggregatedIdList.add(item.get(MagicInfoConstant.DEVICE_ID).asText());
+				}
+			}
+		} catch (Exception e) {
+			aggregatedIdList.clear();
+			logger.error(String.format("Error when get system information, %s", e));
 		}
 	}
 
+	/**
+	 * Creates a JSON ObjectNode for filtering request.
+	 *
+	 * @return JSON ObjectNode containing filtering request information.
+	 */
 	private JsonNode createBodyFilteringRequest() {
 		List<String> sourceValue = new ArrayList<>();
 		List<String> deviceTypeValue = new ArrayList<>();
+		List<String> functionValue = new ArrayList<>();
 		if (StringUtils.isNotNullOrEmpty(filterDeviceType)) {
 			deviceTypeValue = Arrays.stream(filterDeviceType.split(",")).map(String::trim).collect(Collectors.toList());
 		}
-
 		if (StringUtils.isNotNullOrEmpty(filterSource)) {
 			sourceValue = Arrays.stream(filterSource.split(",")).map(String::trim)
-					.map(item -> defaultSourceValue(EnumTypeHandler.getValueByName(SourceEnum.class, item)))
+					.map(item -> EnumTypeHandler.getValueByName(SourceEnum.class, item))
+					.collect(Collectors.toList());
+		}
+		if (StringUtils.isNotNullOrEmpty(filterFunction)) {
+			functionValue = Arrays.stream(filterFunction.split(",")).map(String::trim)
+					.map(item -> EnumTypeHandler.getValueByName(FunctionFilterEnum.class, item))
 					.collect(Collectors.toList());
 		}
 		ObjectNode body = objectMapper.createObjectNode();
 		body.put(MagicInfoConstant.PAGE_SIZE, "400");
 		body.set(MagicInfoConstant.DEVICE_TYPE, objectMapper.valueToTree(deviceTypeValue));
 		body.set(MagicInfoConstant.INPUT_SOURCE, objectMapper.valueToTree(sourceValue));
+		body.set(MagicInfoConstant.INPUT_FUNCTION, objectMapper.valueToTree(functionValue));
 		return body;
 	}
 
-	private String defaultSourceValue(String value) {
-		if (MagicInfoConstant.NONE.equals(value)) {
-			return "100000";
+	/**
+	 * Checks if a JSON array contains only non-"None" values.
+	 *
+	 * @param node The JSON array to be checked.
+	 * @return {@code true} if all elements in the array are non-"None" values, {@code false} otherwise.
+	 */
+	private boolean checkNoneValueInJsonArray(JsonNode node) {
+		if (!node.isArray()) {
+			return false;
 		}
-		return value;
+		for (int i = 0; i < node.size(); i++) {
+			if (MagicInfoConstant.NONE.equals(node.get(i).asText())) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**
@@ -716,7 +911,6 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 					Map<String, String> stats = new HashMap<>();
 					aggregatedDevice.setDeviceOnline(true);
 					mapGeneralInformationProperties(aggregatedDevice.getProperties(), stats);
-					mapQuickControlProperties(aggregatedDevice.getProperties(), stats, advancedControllableProperties);
 					mapDisplayInformationProperties(aggregatedDevice.getProperties(), stats, advancedControllableProperties);
 					mapDynamicStatistic(aggregatedDevice.getProperties(), stats, dynamics);
 
@@ -758,47 +952,6 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 		}
 	}
 
-	private void mapQuickControlProperties(Map<String, String> mappingStatistic, Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties) {
-		String value;
-		String propertyName;
-		String group = "QuickControl#";
-		for (QuickControl item : QuickControl.values()) {
-			propertyName = group.concat(item.getName());
-			value = getDefaultValueForNullData(mappingStatistic.get(item.getName()));
-			switch (item) {
-				case POWER:
-					addAdvanceControlProperties(advancedControllableProperties, stats, createSwitch(propertyName, MagicInfoConstant.TRUE.equals(value) ? 1 : 0, MagicInfoConstant.OFF, MagicInfoConstant.ON),
-							MagicInfoConstant.TRUE.equals(value) ? "1" : "0");
-					break;
-				case VOLUME:
-					addAdvanceControlProperties(advancedControllableProperties, stats, createNumeric(propertyName, value), value);
-					break;
-				case MUTE:
-					addAdvanceControlProperties(advancedControllableProperties, stats, createSwitch(propertyName, Integer.parseInt(value), MagicInfoConstant.OFF, MagicInfoConstant.ON), value);
-					break;
-				case DISPLAY_PANEL:
-					value = MagicInfoConstant.NUMBER_ONE.equals(value) ? "0" : "1";
-					addAdvanceControlProperties(advancedControllableProperties, stats, createSwitch(propertyName, Integer.parseInt(value), MagicInfoConstant.OFF, MagicInfoConstant.ON), value);
-					break;
-				case SOURCE:
-					List<String> availableValues = Arrays.stream(EnumTypeHandler.getEnumValues(SourceEnum.class)).collect(Collectors.toList());
-					if (availableValues.contains(value)) {
-						addAdvanceControlProperties(advancedControllableProperties, stats,
-								createDropdown(propertyName, EnumTypeHandler.getEnumNames(SourceEnum.class), EnumTypeHandler.getNameByValue(SourceEnum.class, value)), value);
-					} else {
-						stats.put(propertyName, MagicInfoConstant.NONE);
-					}
-					break;
-				case RESTART:
-					addAdvanceControlProperties(advancedControllableProperties, stats, createButton(propertyName, MagicInfoConstant.RESTART, MagicInfoConstant.RESTARTING, MagicInfoConstant.GRACE_PERIOD),
-							MagicInfoConstant.NONE);
-					break;
-				default:
-					stats.put(propertyName, MagicInfoConstant.NONE);
-			}
-		}
-	}
-
 	/**
 	 * Maps display information properties from a mapping statistic to a target statistics map.
 	 * This method processes specific properties from the provided {@code localCachedStatistic} and updates the {@code stats} map accordingly.
@@ -810,10 +963,23 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 		String value;
 		String propertyName;
 		int status;
-		for (DisplayInfo item : DisplayInfo.values()) {
+		for (DisplayInfo item : values()) {
 			propertyName = item.getGroup().concat(item.getName());
 			value = getDefaultValueForNullData(mappingStatistic.get(item.getName()));
 			switch (item) {
+				case RESTART:
+					addAdvanceControlProperties(advancedControllableProperties, stats, createButton(propertyName, MagicInfoConstant.RESTART, MagicInfoConstant.RESTARTING, MagicInfoConstant.GRACE_PERIOD),
+							MagicInfoConstant.NONE);
+					break;
+				case POWER:
+					addAdvanceControlProperties(advancedControllableProperties, stats, createSwitch(propertyName, MagicInfoConstant.TRUE.equals(value) ? 1 : 0, MagicInfoConstant.OFF, MagicInfoConstant.ON),
+							MagicInfoConstant.TRUE.equals(value) ? "1" : "0");
+					break;
+				case RESET_SOUND:
+				case RESET_PICTURE:
+					addAdvanceControlProperties(advancedControllableProperties, stats, createButton(propertyName, MagicInfoConstant.RESET, MagicInfoConstant.RESETTING, MagicInfoConstant.GRACE_PERIOD),
+							MagicInfoConstant.NONE);
+					break;
 				case DISPLAY_PANEL:
 					value = MagicInfoConstant.NUMBER_ONE.equals(value) ? "0" : "1";
 					addAdvanceControlProperties(advancedControllableProperties, stats, createSwitch(propertyName, Integer.parseInt(value), MagicInfoConstant.OFF, MagicInfoConstant.ON), value);
@@ -829,7 +995,11 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 				case PIXEL_SHIFT_VERTICAL:
 				case PIXEL_SHIFT_HORIZONTAL:
 				case PIXEL_SHIFT_TIME:
-					addAdvanceControlProperties(advancedControllableProperties, stats, createNumeric(propertyName, value), value);
+					if (!MagicInfoConstant.NONE.equals(value)) {
+						addAdvanceControlProperties(advancedControllableProperties, stats, createNumeric(propertyName, value), value);
+					} else {
+						stats.put(propertyName, MagicInfoConstant.NONE);
+					}
 					break;
 				case MIN_VALUE:
 				case MAX_VALUE:
@@ -857,7 +1027,6 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 				case PICTURE_ENHANCER:
 				case AUTO_POWER_ON:
 				case REMOTE_CONFIGURATION:
-				case AUTO_SOURCE_SWITCHING:
 				case SCREEN_LAMP_SCHEDULE:
 				case PIXEL_SHIFT:
 					status = getSwitchStatus(value);
@@ -878,8 +1047,10 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 				case SOURCE:
 					List<String> availableValues = Arrays.stream(EnumTypeHandler.getEnumValues(SourceEnum.class)).collect(Collectors.toList());
 					if (availableValues.contains(value)) {
+						availableValues = Arrays.stream(EnumTypeHandler.getEnumNames(SourceEnum.class)).collect(Collectors.toList());
+						availableValues.removeIf(index -> index.equalsIgnoreCase("ALL"));
 						addAdvanceControlProperties(advancedControllableProperties, stats,
-								createDropdown(propertyName, EnumTypeHandler.getEnumNames(SourceEnum.class), EnumTypeHandler.getNameByValue(SourceEnum.class, value)), value);
+								createDropdown(propertyName, availableValues.toArray(new String[0]), EnumTypeHandler.getNameByValue(SourceEnum.class, value)), value);
 					} else {
 						stats.put(propertyName, MagicInfoConstant.NONE);
 					}
@@ -891,8 +1062,7 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 				case COLOR_TEMPERATURE:
 					availableValues = Arrays.stream(EnumTypeHandler.getEnumValues(ColorTemperatureEnum.class)).collect(Collectors.toList());
 					if (availableValues.contains(value)) {
-						addAdvanceControlProperties(advancedControllableProperties, stats,
-								createDropdown(propertyName, EnumTypeHandler.getEnumNames(ColorTemperatureEnum.class), EnumTypeHandler.getNameByValue(ColorTemperatureEnum.class, value)), value);
+						stats.put(propertyName, EnumTypeHandler.getNameByValue(ColorTemperatureEnum.class, value));
 					} else {
 						stats.put(propertyName, MagicInfoConstant.NONE);
 					}
@@ -900,8 +1070,7 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 				case PICTURE_SIZE:
 					availableValues = Arrays.stream(EnumTypeHandler.getEnumValues(PictureSizeEnum.class)).collect(Collectors.toList());
 					if (availableValues.contains(value)) {
-						addAdvanceControlProperties(advancedControllableProperties, stats,
-								createDropdown(propertyName, EnumTypeHandler.getEnumNames(PictureSizeEnum.class), EnumTypeHandler.getNameByValue(PictureSizeEnum.class, value)), value);
+						stats.put(propertyName, EnumTypeHandler.getNameByValue(PictureSizeEnum.class, value));
 					} else {
 						stats.put(propertyName, MagicInfoConstant.NONE);
 					}
@@ -909,8 +1078,7 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 				case DIGITAL_CLEAN_VIEW:
 					availableValues = Arrays.stream(EnumTypeHandler.getEnumValues(DigitalCleanViewEnum.class)).collect(Collectors.toList());
 					if (availableValues.contains(value)) {
-						addAdvanceControlProperties(advancedControllableProperties, stats,
-								createDropdown(propertyName, EnumTypeHandler.getEnumNames(DigitalCleanViewEnum.class), EnumTypeHandler.getNameByValue(DigitalCleanViewEnum.class, value)), value);
+						stats.put(propertyName, EnumTypeHandler.getNameByValue(DigitalCleanViewEnum.class, value));
 					} else {
 						stats.put(propertyName, MagicInfoConstant.NONE);
 					}
@@ -918,8 +1086,7 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 				case FILM_MODE:
 					availableValues = Arrays.stream(EnumTypeHandler.getEnumValues(FilmModeEnum.class)).collect(Collectors.toList());
 					if (availableValues.contains(value)) {
-						addAdvanceControlProperties(advancedControllableProperties, stats,
-								createDropdown(propertyName, EnumTypeHandler.getEnumNames(FilmModeEnum.class), EnumTypeHandler.getNameByValue(FilmModeEnum.class, value)), value);
+						stats.put(propertyName, EnumTypeHandler.getNameByValue(FilmModeEnum.class, value));
 					} else {
 						stats.put(propertyName, MagicInfoConstant.NONE);
 					}
@@ -927,39 +1094,9 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 				case HDMI_BLACK_LEVEL:
 					availableValues = Arrays.stream(EnumTypeHandler.getEnumValues(HDMIBlackLevelEnum.class)).collect(Collectors.toList());
 					if (availableValues.contains(value)) {
-						addAdvanceControlProperties(advancedControllableProperties, stats,
-								createDropdown(propertyName, EnumTypeHandler.getEnumNames(HDMIBlackLevelEnum.class), EnumTypeHandler.getNameByValue(HDMIBlackLevelEnum.class, value)), value);
+						stats.put(propertyName, EnumTypeHandler.getNameByValue(HDMIBlackLevelEnum.class, value));
 					} else {
 						stats.put(propertyName, MagicInfoConstant.NONE);
-					}
-					break;
-				case LED_PICTURE_SIZE:
-					String[] arrayValues = value.split(MagicInfoConstant.SEMICOLON);
-					if (arrayValues.length == 2) {
-						if (MagicInfoConstant.NUMBER_ONE.equals(arrayValues[0])) {
-							stats.put(MagicInfoConstant.PICTURE_PC.concat(MagicInfoConstant.RESOLUTION), arrayValues[1]);
-						}
-						addAdvanceControlProperties(advancedControllableProperties, stats,
-								createDropdown(MagicInfoConstant.PICTURE_PC.concat(MagicInfoConstant.LED_PICTURE_SIZE), EnumTypeHandler.getEnumNames(LEDPictureSizeEnum.class),
-										EnumTypeHandler.getNameByValue(LEDPictureSizeEnum.class, arrayValues[0])), arrayValues[0]);
-					} else {
-						stats.put(MagicInfoConstant.PICTURE_PC.concat(MagicInfoConstant.LED_PICTURE_SIZE), MagicInfoConstant.NONE);
-					}
-					break;
-				case LED_HDR:
-					arrayValues = value.split(MagicInfoConstant.SEMICOLON);
-					if (arrayValues.length == 3) {
-						addAdvanceControlProperties(advancedControllableProperties, stats,
-								createSwitch(MagicInfoConstant.PICTURE_PC.concat(MagicInfoConstant.INVERSE_TONE_MAPPING), getSwitchStatus(arrayValues[0]), MagicInfoConstant.OFF, MagicInfoConstant.ON),
-								arrayValues[0]);
-						addAdvanceControlProperties(advancedControllableProperties, stats,
-								createSwitch(MagicInfoConstant.PICTURE_PC.concat(MagicInfoConstant.DYNAMIC_PEAKING), getSwitchStatus(arrayValues[1]), MagicInfoConstant.OFF, MagicInfoConstant.ON), arrayValues[1]);
-						addAdvanceControlProperties(advancedControllableProperties, stats,
-								createSwitch(MagicInfoConstant.PICTURE_PC.concat(MagicInfoConstant.COLOR_MAPPING), getSwitchStatus(arrayValues[2]), MagicInfoConstant.OFF, MagicInfoConstant.ON), arrayValues[1]);
-					} else {
-						stats.put(MagicInfoConstant.PICTURE_PC.concat(MagicInfoConstant.INVERSE_TONE_MAPPING), MagicInfoConstant.NONE);
-						stats.put(MagicInfoConstant.PICTURE_PC.concat(MagicInfoConstant.DYNAMIC_PEAKING), MagicInfoConstant.NONE);
-						stats.put(MagicInfoConstant.PICTURE_PC.concat(MagicInfoConstant.COLOR_MAPPING), MagicInfoConstant.NONE);
 					}
 					break;
 				case SOUND_MODE:
@@ -971,21 +1108,31 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 						stats.put(propertyName, MagicInfoConstant.NONE);
 					}
 					break;
+				case AUTO_SOURCE_SWITCHING:
+					status = 1;
+					if (MagicInfoConstant.ZERO.equals(value)) {
+						status = 0;
+					}
+					addAdvanceControlProperties(advancedControllableProperties, stats, createSwitch(propertyName, status, MagicInfoConstant.OFF, MagicInfoConstant.ON), value);
+					break;
 				case RESTORE_PRIMARY_SOURCE:
-					if (MagicInfoConstant.NUMBER_ONE.equals(mappingStatistic.get(MagicInfoConstant.AUTO_SOURCE_SWITCHING))) {
-						addAdvanceControlProperties(advancedControllableProperties, stats, createSwitch(propertyName, Integer.parseInt(value), MagicInfoConstant.OFF, MagicInfoConstant.ON), value);
+					if (!MagicInfoConstant.ZERO.equals(mappingStatistic.get(MagicInfoConstant.AUTO_SOURCE_SWITCHING))) {
+						stats.put(propertyName, MagicInfoConstant.ZERO.equals(value) ? "Off" : "On");
 					}
 					break;
 				case PRIMARY_SOURCE:
 				case SECONDARY_SOURCE:
-					if (MagicInfoConstant.NUMBER_ONE.equals(mappingStatistic.get(MagicInfoConstant.AUTO_SOURCE_SWITCHING))) {
-						addAdvanceControlProperties(advancedControllableProperties, stats,
-								createDropdown(propertyName, EnumTypeHandler.getEnumNames(SourceEnum.class), EnumTypeHandler.getNameByValue(SourceEnum.class, value)), value);
+					if (!MagicInfoConstant.ZERO.equals(mappingStatistic.get(MagicInfoConstant.AUTO_SOURCE_SWITCHING))) {
+						stats.put(propertyName, EnumTypeHandler.getNameByValue(SourceEnum.class, value));
 					}
 					break;
 				case MAX_TIME_HOUR:
 				case MIN_TIME_HOUR:
 					String time;
+					value = mappingStatistic.get(MagicInfoConstant.MAX_TIME);
+					if (MIN_TIME_HOUR.getName().equals(item.getName())) {
+						value = mappingStatistic.get(MagicInfoConstant.MIN_TIME);
+					}
 					if (MagicInfoConstant.NUMBER_ONE.equals(mappingStatistic.get(SCREEN_LAMP_SCHEDULE.getName()))) {
 						time = convert12HourTo24Hour(value);
 						if (!MagicInfoConstant.NONE.equals(time)) {
@@ -998,18 +1145,12 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 						stats.put(propertyName.replace("(hour)", MagicInfoConstant.EMPTY), value);
 					}
 					break;
-				case TIMER_END_TIME_HOUR:
-				case TIMER_START_TIME_HOUR:
-					time = convert12HourTo24Hour(value);
-					if (!MagicInfoConstant.NONE.equals(time)) {
-						String hour = time.split(MagicInfoConstant.COLON)[0];
-						addAdvanceControlProperties(advancedControllableProperties, stats, createDropdown(propertyName, createArrayNumber(0, 23), hour), hour);
-					} else {
-						stats.put(propertyName, MagicInfoConstant.NONE);
-					}
-					break;
 				case MAX_TIME_MINUTE:
 				case MIN_TIME_MINUTE:
+					value = mappingStatistic.get(MagicInfoConstant.MAX_TIME);
+					if (MIN_TIME_MINUTE.getName().equals(item.getName())) {
+						value = mappingStatistic.get(MagicInfoConstant.MIN_TIME);
+					}
 					if (MagicInfoConstant.NUMBER_ONE.equals(mappingStatistic.get(SCREEN_LAMP_SCHEDULE.getName()))) {
 						time = convert12HourTo24Hour(value);
 						if (!MagicInfoConstant.NONE.equals(time)) {
@@ -1020,14 +1161,28 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 						}
 					}
 					break;
+				case TIMER_END_TIME_HOUR:
+				case TIMER_START_TIME_HOUR:
+					if (MagicInfoConstant.NUMBER_TWO.equals(mappingStatistic.get(MagicInfoConstant.TIMER))) {
+						time = convert12HourTo24Hour(value);
+						if (!MagicInfoConstant.NONE.equals(time)) {
+							String hour = time.split(MagicInfoConstant.COLON)[0];
+							addAdvanceControlProperties(advancedControllableProperties, stats, createDropdown(propertyName, createArrayNumber(0, 23), hour), hour);
+						} else {
+							stats.put(propertyName, MagicInfoConstant.NONE);
+						}
+					}
+					break;
 				case TIMER_START_TIME_MIN:
 				case TIMER_END_TIME_MIN:
-					time = convert12HourTo24Hour(value);
-					if (!MagicInfoConstant.NONE.equals(time)) {
-						String minute = time.split(MagicInfoConstant.COLON)[1];
-						addAdvanceControlProperties(advancedControllableProperties, stats, createDropdown(propertyName, createArrayNumber(0, 59), minute), minute);
-					} else {
-						stats.put(propertyName, MagicInfoConstant.NONE);
+					if (MagicInfoConstant.NUMBER_TWO.equals(mappingStatistic.get(MagicInfoConstant.TIMER))) {
+						time = convert12HourTo24Hour(value);
+						if (!MagicInfoConstant.NONE.equals(time)) {
+							String minute = time.split(MagicInfoConstant.COLON)[1];
+							addAdvanceControlProperties(advancedControllableProperties, stats, createDropdown(propertyName, createArrayNumber(0, 59), minute), minute);
+						} else {
+							stats.put(propertyName, MagicInfoConstant.NONE);
+						}
 					}
 					break;
 				case TIMER:
@@ -1061,8 +1216,7 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 				case IMMEDIATE_DISPLAY:
 					availableValues = Arrays.stream(EnumTypeHandler.getEnumValues(ImmediateDisplayEnum.class)).collect(Collectors.toList());
 					if (availableValues.contains(value)) {
-						addAdvanceControlProperties(advancedControllableProperties, stats,
-								createDropdown(propertyName, EnumTypeHandler.getEnumNames(ImmediateDisplayEnum.class), EnumTypeHandler.getNameByValue(ImmediateDisplayEnum.class, value)), value);
+						stats.put(propertyName, EnumTypeHandler.getNameByValue(ImmediateDisplayEnum.class, value));
 					} else {
 						stats.put(propertyName, MagicInfoConstant.NONE);
 					}
@@ -1102,6 +1256,217 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 	}
 
 	/**
+	 * Updates cached devices' control value, after the control command was executed with the specified value.
+	 * It is done in order for aggregator to populate the latest control values, after the control command has been executed,
+	 * but before the next devices details polling cycle was addressed.
+	 *
+	 * @param deviceId to update control value for
+	 * @param name of the control property
+	 * @param value to set to the control property
+	 */
+	private void updateLocalControlValue(String deviceId, String name, String value) {
+		Optional<AggregatedDevice> device = aggregatedDeviceList.stream().filter(aggregatedDevice ->
+				deviceId.equals(aggregatedDevice.getDeviceId())).findFirst();
+		device.flatMap(aggregatedDevice ->
+				aggregatedDevice.getControllableProperties().stream().filter(advancedControllableProperty ->
+						name.equals(advancedControllableProperty.getName())).findFirst()).ifPresent(advancedControllableProperty ->
+				advancedControllableProperty.setValue(value));
+		device.ifPresent(aggregatedDevice -> aggregatedDevice.getProperties().put(name, value));
+	}
+
+	/**
+	 * Updates the locally cached value for a specific device and property.
+	 *
+	 * @param deviceId The unique identifier of the device.
+	 * @param name The name of the property to update.
+	 * @param value The new value to set for the property.
+	 */
+	private void updateLocalCachedValue(String deviceId, String name, String value) {
+		localCachedStatistic.get(deviceId).remove(name);
+		localCachedStatistic.get(deviceId).put(name, value);
+	}
+
+	/**
+	 * Updates the properties and controllable properties of an aggregated device in the list.
+	 *
+	 * @param deviceId The unique identifier of the device to update.
+	 * @param stats The updated device properties.
+	 * @param advancedControllableProperties The updated list of advanced controllable properties.
+	 */
+	private void updateListAggregatedDevice(String deviceId, Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties) {
+		Optional<AggregatedDevice> device = aggregatedDeviceList.stream().filter(aggregatedDevice ->
+				deviceId.equals(aggregatedDevice.getDeviceId())).findFirst();
+		if (device.isPresent()) {
+			device.get().setControllableProperties(advancedControllableProperties);
+			device.get().setProperties(stats);
+		}
+	}
+
+	/**
+	 * Checks the connection status of a device using its unique identifier.
+	 *
+	 * @param id The unique identifier of the device to check.
+	 * @return {@code true} if the device is connected, {@code false} otherwise.
+	 */
+	private boolean checkConnectionDevice(String id) {
+		try {
+			List<String> ids = Collections.singletonList(id);
+			ObjectNode idListParam = objectMapper.createObjectNode();
+			idListParam.set(MagicInfoConstant.IDS, objectMapper.valueToTree(ids));
+			JsonNode response = this.doPost(MagicInfoCommand.CHECK_CONNECTION_COMMAND, (JsonNode) idListParam, JsonNode.class);
+			if (response != null && response.has(MagicInfoConstant.STATUS)) {
+				return response.get(MagicInfoConstant.STATUS).asText().equals(MagicInfoConstant.SUCCESS);
+			}
+		} catch (Exception e) {
+			logger.error(String.format("Error when send request to check connection device, %s", e));
+		}
+		return false;
+	}
+
+	/**
+	 * Checks if the data has been successfully updated on a device after sending a control request.
+	 *
+	 * @param id The unique identifier of the device.
+	 * @param requestId The request identifier associated with the control request.
+	 * @param group The group identifier, if applicable (or an empty string if not used).
+	 * @param field The field name of the property being checked.
+	 * @param value The expected value of the property.
+	 * @return {@code true} if the data has been successfully updated to the expected value, {@code false} otherwise.
+	 */
+	private boolean checkDataAfterUpdate(String id, String requestId, String group, String field, String value) {
+		try {
+			List<String> ids = Collections.singletonList(id);
+			ObjectNode body = objectMapper.createObjectNode();
+			body.set(MagicInfoConstant.DEVICE_IDS, objectMapper.valueToTree(ids));
+			body.put(MagicInfoConstant.REQUEST_ID, requestId);
+			boolean status = false;
+			JsonNode response = null;
+			while (!status) {
+				response = this.doPost(MagicInfoCommand.UPDATE_DISPLAY_COMMAND, (JsonNode) body, JsonNode.class);
+				if (response != null && response.has(MagicInfoConstant.STATUS) && MagicInfoConstant.SUCCESS.equals(response.get(MagicInfoConstant.STATUS).asText())) {
+					status = true;
+				} else {
+					Thread.sleep(1500);
+				}
+			}
+			if (response.has(MagicInfoConstant.ITEMS) && response.get(MagicInfoConstant.ITEMS).get(MagicInfoConstant.SUCCESS_LIST).size() > 0) {
+				if (StringUtils.isNotNullOrEmpty(group)) {
+					if (MagicInfoConstant.MAINTENANCE_GROUP.equals(group)) {
+						updateLocalCachedMaintenanceGroup(id, response.get(MagicInfoConstant.ITEMS).get(MagicInfoConstant.SUCCESS_LIST).get(0).get(group));
+					}
+					return response.get(MagicInfoConstant.ITEMS).get(MagicInfoConstant.SUCCESS_LIST).get(0).get(group).get(field).asText().equals(value);
+				}
+				return response.get(MagicInfoConstant.ITEMS).get(MagicInfoConstant.SUCCESS_LIST).get(0).get(field).asText().equals(value);
+			}
+		} catch (Exception e) {
+			logger.error(String.format("Error when send request to check data after update, %s", e));
+		}
+		return false;
+	}
+
+	/**
+	 * Sends a control request to update the specified property for a device.
+	 *
+	 * @param property The property to update.
+	 * @param id The unique identifier of the device.
+	 * @param value The new value to set for the property.
+	 * @throws IllegalArgumentException If the device is disconnected or if an error occurs while sending the control request.
+	 */
+	private void sendControlRequest(DisplayInfo property, String id, String value) {
+		if (!checkConnectionDevice(id)) {
+			throw new IllegalArgumentException("The device is disconnected.");
+		}
+		try {
+			List<String> ids = Collections.singletonList(id);
+			ObjectNode body = objectMapper.createObjectNode();
+			body.set(MagicInfoConstant.DEVICE_IDS, objectMapper.valueToTree(ids));
+			body.put(property.getFieldName(), value);
+			JsonNode response = this.doPut(MagicInfoCommand.UPDATE_DISPLAY_COMMAND, (JsonNode) body, JsonNode.class);
+			if (response != null && response.has(MagicInfoConstant.ITEMS) && response.get(MagicInfoConstant.ITEMS).get(MagicInfoConstant.SUCCESS_LIST).size() > 0) {
+				String requestId = response.get(MagicInfoConstant.ITEMS).get(MagicInfoConstant.REQUEST_ID).asText();
+				if (!checkDataAfterUpdate(id, requestId, "", property.getFieldName(), value)) {
+					throw new IllegalArgumentException(String.format("Can't control property %s with value %s same WebUI", property.getName(), value));
+				}
+			} else {
+				throw new IllegalArgumentException(String.format("Can't control property %s with value %s. The device has responded with an error", property.getName(), value));
+			}
+		} catch (Exception e) {
+			throw new IllegalArgumentException(String.format("Can't control property %s with value %s. The device has responded with an error.", property.getName(), value), e);
+		}
+	}
+
+	/**
+	 * Sends a control request to update the specified property for a device.
+	 *
+	 * @param property The property to update.
+	 * @param id The unique identifier of the device.
+	 * @param value The new value to set for the property.
+	 * @throws IllegalArgumentException If the device is disconnected or if an error occurs while sending the control request.
+	 */
+	private void sendGroupControl(DisplayInfo property, String id, String value, String group, Object object) {
+		if (!checkConnectionDevice(id)) {
+			throw new IllegalArgumentException("The device is disconnected.");
+		}
+		try {
+			List<String> ids = Collections.singletonList(id);
+			ObjectNode body = objectMapper.createObjectNode();
+			JsonNode jsonValue = objectMapper.valueToTree(object);
+			body.set(MagicInfoConstant.DEVICE_IDS, objectMapper.valueToTree(ids));
+			body.set(group, jsonValue);
+			JsonNode response = this.doPut(MagicInfoCommand.UPDATE_DISPLAY_COMMAND, (JsonNode) body, JsonNode.class);
+			if (response != null && response.has(MagicInfoConstant.ITEMS) && response.get(MagicInfoConstant.ITEMS).get(MagicInfoConstant.SUCCESS_LIST).size() > 0) {
+				String requestId = response.get(MagicInfoConstant.ITEMS).get(MagicInfoConstant.REQUEST_ID).asText();
+				if (!checkDataAfterUpdate(id, requestId, group, property.getFieldName(), value)) {
+					throw new IllegalArgumentException(String.format("Can't control property %s with value %s", property.getName(), value));
+				}
+			} else {
+				throw new IllegalArgumentException(String.format("Can't control property %s with value %s. The device has responded with an error", property.getName(), value));
+			}
+		} catch (Exception e) {
+			throw new IllegalArgumentException(String.format("Can't control property %s with value %s. The device has responded with an error.", property.getName(), value), e);
+		}
+	}
+
+	private void updateLocalCachedMaintenanceGroup(String id, JsonNode response) {
+		updateLocalCachedValue(id, MagicInfoConstant.MAX_TIME, response.get("mntAutoMaxValue").asText());
+		updateLocalCachedValue(id, MagicInfoConstant.MIN_TIME, response.get("mntAutoMinTime").asText());
+		updateLocalCachedValue(id, MAX_VALUE.getName(), response.get("mntAutoMaxValue").asText());
+		updateLocalCachedValue(id, MIN_VALUE.getName(), response.get("mntAutoMinValue").asText());
+	}
+
+	/**
+	 * Removes a controllable property and its associated value from the provided statistics and advanced controllable properties lists.
+	 *
+	 * @param stats The statistics map containing property values.
+	 * @param advancedControllableProperties The list of advanced controllable properties.
+	 * @param name The name of the property to remove.
+	 */
+	private void removeValueForTheControllableProperty(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties, String name) {
+		stats.remove(name);
+		advancedControllableProperties.removeIf(item -> item.getName().equalsIgnoreCase(name));
+	}
+
+	/**
+	 * Adds a controllable property and its associated value to the provided statistics and advanced controllable properties lists.
+	 *
+	 * @param stats The statistics map to which the property value will be added.
+	 * @param advancedControllableProperties The list of advanced controllable properties to which the property will be added.
+	 * @param property The advanced controllable property to add.
+	 * @param value The value of the property to be added.
+	 */
+	private void addValueForTheControllableProperty(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties, AdvancedControllableProperty property, String value) {
+		if (property != null) {
+			removeValueForTheControllableProperty(stats, advancedControllableProperties, property.getName());
+			if (StringUtils.isNotNullOrEmpty(value)) {
+				stats.put(property.getName(), value);
+			} else {
+				stats.put(property.getName(), MagicInfoConstant.EMPTY);
+			}
+			advancedControllableProperties.add(property);
+		}
+	}
+
+	/**
 	 * Combines two JSON nodes into a single JSON node.
 	 *
 	 * @param nodeA The first JSON node to combine.
@@ -1134,6 +1499,36 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 	}
 
 	/**
+	 * Checks if the input value is valid and converts it to an integer.
+	 *
+	 * @param value The input value to be checked and converted to an integer.
+	 * @param min is the minimum value
+	 * @param max is the maximum value
+	 * @return The converted integer value if the input is valid.
+	 * @throws IllegalArgumentException if the input value is not a valid integer.
+	 */
+	private String checkValidInput(int min, int max, String value) {
+		if (value.contains(MagicInfoConstant.DOT)) {
+			value = value.split(MagicInfoConstant.DOT_REGEX)[0];
+		}
+		int initial = min;
+		try {
+			int valueCompare = Integer.parseInt(value);
+			if (min <= valueCompare && valueCompare <= max) {
+				return String.valueOf(valueCompare);
+			}
+			if (valueCompare > max) {
+				initial = max;
+			}
+		} catch (Exception e) {
+			if (!value.contains(MagicInfoConstant.DASH)) {
+				initial = max;
+			}
+		}
+		return String.valueOf(initial);
+	}
+
+	/**
 	 * Converts a 12-hour formatted time string to a 24-hour formatted time string.
 	 *
 	 * @param time12h The input time string in 12-hour format (e.g., "12:02AM" or "12:02PM").
@@ -1162,6 +1557,27 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 		} catch (Exception e) {
 			return MagicInfoConstant.NONE;
 		}
+	}
+
+	/**
+	 * Converts a time in 24-hour format to a 12-hour format with AM/PM indicator.
+	 *
+	 * @param hourValue The hour value in 24-hour format (0-23).
+	 * @param minuteValue The minute value (0-59).
+	 * @return A formatted string representing the time in 12-hour format with AM/PM.
+	 */
+	public static String convertTo12HourFormat(String hourValue, String minuteValue) {
+		int hour = Integer.parseInt(hourValue);
+		int minute = Integer.parseInt(minuteValue);
+		String period = hour >= 12 ? "PM" : "AM";
+		if (hour == 0) {
+			hour = 12;
+		} else if (hour > 12) {
+			hour -= 12;
+		}
+		String formattedHour = String.valueOf(hour);
+		String formattedMinute = minute < 10 ? "0" + minute : String.valueOf(minute);
+		return formattedHour + ":" + formattedMinute + period;
 	}
 
 	/**

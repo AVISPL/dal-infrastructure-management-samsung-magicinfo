@@ -13,6 +13,7 @@ package com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.comm
  * @since 1.0.0
  */
 public enum SourceEnum {
+	ALL("ALL", "0"),
 	PC("PC", "20"),
 	BNC("BNC", "30"),
 	DVI("DVI", "24"),

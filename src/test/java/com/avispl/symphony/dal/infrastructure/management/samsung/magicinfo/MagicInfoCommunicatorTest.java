@@ -68,17 +68,77 @@ public class MagicInfoCommunicatorTest {
 		magicInfoCommunicator.retrieveMultipleStatistics();
 		Thread.sleep(30000);
 		List<AggregatedDevice> aggregatedDeviceList = magicInfoCommunicator.retrieveMultipleStatistics();
-		Assert.assertEquals(1, aggregatedDeviceList.size());
+		Assert.assertEquals(2, aggregatedDeviceList.size());
 	}
 
 	@Test
 	void testFiltering() throws Exception {
-		magicInfoCommunicator.setFilterDeviceType("S6PLAYER");
-		magicInfoCommunicator.setFilterSource("HDMI1,AAA");
+		magicInfoCommunicator.setFilterDeviceType("S6PLAYER,S10PLAYER");
+		magicInfoCommunicator.setFilterSource("");
+		magicInfoCommunicator.setFilterFunction("");
 		magicInfoCommunicator.getMultipleStatistics();
 		magicInfoCommunicator.retrieveMultipleStatistics();
 		Thread.sleep(30000);
 		List<AggregatedDevice> aggregatedDeviceList = magicInfoCommunicator.retrieveMultipleStatistics();
-		Assert.assertEquals(0, aggregatedDeviceList.size());
+		Assert.assertEquals(2, aggregatedDeviceList.size());
+	}
+
+	@Test
+	void testGetMultipleStatisticsWithHistorical() throws Exception {
+		magicInfoCommunicator.setHistoricalProperties("Temperature(C)");
+		magicInfoCommunicator.getMultipleStatistics();
+		magicInfoCommunicator.retrieveMultipleStatistics();
+		Thread.sleep(30000);
+		List<AggregatedDevice> aggregatedDeviceList = magicInfoCommunicator.retrieveMultipleStatistics();
+		Assert.assertEquals(2, aggregatedDeviceList.size());
+		Assert.assertEquals(1, aggregatedDeviceList.get(0).getDynamicStatistics().size());
+	}
+
+	@Test
+	void testTextControl() throws Exception {
+		magicInfoCommunicator.getMultipleStatistics();
+		magicInfoCommunicator.retrieveMultipleStatistics();
+		Thread.sleep(30000);
+		magicInfoCommunicator.retrieveMultipleStatistics();
+		ControllableProperty controllableProperty = new ControllableProperty();
+		String property = MagicInfoConstant.MAINTENANCE_GROUP.concat("MaxTime(minute)");
+		String value = "15";
+		String deviceId = "a0-d0-5b-b2-e8-91";  //LFD_1
+		controllableProperty.setProperty(property);
+		controllableProperty.setValue(value);
+		controllableProperty.setDeviceId(deviceId);
+		magicInfoCommunicator.controlProperty(controllableProperty);
+	}
+
+	@Test
+	void testText() throws Exception {
+		magicInfoCommunicator.getMultipleStatistics();
+		magicInfoCommunicator.retrieveMultipleStatistics();
+		Thread.sleep(30000);
+		magicInfoCommunicator.retrieveMultipleStatistics();
+		ControllableProperty controllableProperty = new ControllableProperty();
+		String property = MagicInfoConstant.SCREEN_BURN_PROTECTION_GROUP.concat("Timer");
+		String value = "Repeat";
+		String deviceId = "5c-49-7d-17-3c-81";
+		controllableProperty.setProperty(property);
+		controllableProperty.setValue(value);
+		controllableProperty.setDeviceId(deviceId);
+		magicInfoCommunicator.controlProperty(controllableProperty);
+	}
+
+	@Test
+	void testReset() throws Exception {
+		magicInfoCommunicator.getMultipleStatistics();
+		magicInfoCommunicator.retrieveMultipleStatistics();
+		Thread.sleep(20000);
+		magicInfoCommunicator.retrieveMultipleStatistics();
+		ControllableProperty controllableProperty = new ControllableProperty();
+		String property = MagicInfoConstant.PICTURE_VIDEO.concat("ResetPicture");
+		String value = "1";
+		String deviceId = "5c-49-7d-17-3c-81";
+		controllableProperty.setProperty(property);
+		controllableProperty.setValue(value);
+		controllableProperty.setDeviceId(deviceId);
+		magicInfoCommunicator.controlProperty(controllableProperty);
 	}
 }

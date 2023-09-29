@@ -17,10 +17,9 @@ public class MagicInfoConstant {
 	public static final String NONE = "None";
 	public static final String OFF = "Off";
 	public static final String ON = "On";
-	public static final String DISPLAY_GENERAL_GROUP = "DisplayGeneral#";
+	public static final String DISPLAY_CONTROLS_GROUP = "DisplayControls#";
 	public static final String TEMPERATURE_GROUP = "FanAndTemperature#";
 	public static final String PICTURE_VIDEO = "Picture(VIDEO)#";
-	public static final String PICTURE_PC = "Picture(PC)#";
 	public static final String SOUND = "Sound#";
 	public static final String ADVANCED_SETTING = "AdvancedSetting#";
 	public static final String MAINTENANCE_GROUP = "Maintenance#";
@@ -42,6 +41,7 @@ public class MagicInfoConstant {
 	public static final String DEVICE_TYPE = "deviceType";
 	public static final String SUCCESS = "Success";
 	public static final String INPUT_SOURCE = "inputSources";
+	public static final String INPUT_FUNCTION = "functionTypes";
 	public static final String TRUE = "true";
 	public static final String NUMBER_ONE = "1";
 	public static final String NUMBER_TWO = "2";
@@ -54,21 +54,19 @@ public class MagicInfoConstant {
 	public static final String DOT = ".";
 	public static final String DOT_REGEX = "\\.";
 	public static final String DASH = "-";
-	public static final String RESOLUTION = "Resolution";
-	public static final String LED_PICTURE_SIZE = "LEDPictureSize";
-	public static final String INVERSE_TONE_MAPPING = "InverseToneMapping";
-	public static final String DYNAMIC_PEAKING = "DynamicPeaking";
-	public static final String COLOR_MAPPING = "ColorMapping";
 	public static final String AUTO_SOURCE_SWITCHING = "AutoSourceSwitching";
 	public static final String TIMER = "Timer";
 	public static final String WEB_BROWSER_HOME_PAGE = "WebBrowserHomePage";
 	public static final String AUTO_SOURCE = "autoSourceSwitching";
 	public static final String MNT_AUTO = "mntAuto";
 	public static final String MNT_PIXEL_SHIFT = "mntPixelShift";
+	public static final String MNT_SAFETY_SCREEN_TIMER = "mntSafetyScreenTimer";
 	public static final String MAX_TIME = "MaxTime";
 	public static final String MIN_TIME = "MinTime";
 	public static final String WEB_BROWSER_URL = "webBrowserUrl";
 	public static final int GRACE_PERIOD = 0;
 	public static final String RESTART = "Restart";
 	public static final String RESTARTING = "Restarting";
+	public static final String RESET  = "Reset";
+	public static final String RESETTING = "Resetting";
 }

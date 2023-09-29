@@ -14,7 +14,7 @@ import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.commo
  * @since 1.0.0
  */
 public enum DynamicStatisticsDefinition {
-	TEMPERATURE("CurrentTemperature(C)", MagicInfoConstant.TEMPERATURE_GROUP),
+	TEMPERATURE("Temperature(C)", MagicInfoConstant.EMPTY),
 	;
 
 	private final String name;
