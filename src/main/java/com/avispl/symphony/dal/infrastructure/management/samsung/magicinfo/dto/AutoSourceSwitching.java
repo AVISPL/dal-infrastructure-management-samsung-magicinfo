@@ -1,7 +1,7 @@
 package com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.dto;
 
 /**
- * AutoSourceSwitching
+ * Represents a configuration for auto source switching settings.
  *
  * @author Harry / Symphony Dev Team<br>
  * Created on 9/21/2023

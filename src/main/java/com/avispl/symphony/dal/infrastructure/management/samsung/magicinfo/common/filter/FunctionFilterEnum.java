@@ -5,7 +5,7 @@
 package com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.filter;
 
 /**
- * FunctionFilterEnum
+ * Enum representing function filters used for filtering devices.
  *
  * @author Harry / Symphony Dev Team<br>
  * Created on 9/28/2023

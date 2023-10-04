@@ -16,64 +16,65 @@ import java.util.Optional;
  * @since 1.0.0
  */
 public enum DisplayInfo {
-	DISPLAY_PANEL("DisplayPanel", MagicInfoConstant.DISPLAY_CONTROLS_GROUP, "basicPanelStatus"),
-	SOURCE("Source", MagicInfoConstant.DISPLAY_CONTROLS_GROUP, "basicSource"),
-	WEB_BROWSER_INTERVAL("WebBrowserRefreshInterval", MagicInfoConstant.DISPLAY_CONTROLS_GROUP, "webBrowserInterval"),
-	WEB_BROWSER_ZOOM("WebBrowserZoom", MagicInfoConstant.DISPLAY_CONTROLS_GROUP, "webBrowserZoom"),
-	WEB_BROWSER_HOME_PAGE("WebBrowserHomePage", MagicInfoConstant.DISPLAY_CONTROLS_GROUP, "webBrowserHomepage"),
-	WEB_BROWSER_PAGE_URL("WebBrowserPageURL", MagicInfoConstant.DISPLAY_CONTROLS_GROUP, "webBrowserPageurl"),
-	VOLUME("Volume", MagicInfoConstant.DISPLAY_CONTROLS_GROUP, "basicVolume"),
-	MUTE("Mute", MagicInfoConstant.DISPLAY_CONTROLS_GROUP, "basicMute"),
-	POWER("Power", MagicInfoConstant.DISPLAY_CONTROLS_GROUP, ""),
-	RESTART("Restart", MagicInfoConstant.DISPLAY_CONTROLS_GROUP, ""),
-	TEMPERATURE_CONTROL("TemperatureControl(C)", MagicInfoConstant.TEMPERATURE_GROUP, "diagnosisAlarmTemperature"),
-	LAMP_CONTROL("LampControl(%)", MagicInfoConstant.PICTURE_VIDEO, "mntManual"),
-	CONTRAST("Contrast(%)", MagicInfoConstant.PICTURE_VIDEO, "pvContrast"),
-	BRIGHTNESS("Brightness(%)", MagicInfoConstant.PICTURE_VIDEO, "pvBrightness"),
-	SHARPNESS("Sharpness(%)", MagicInfoConstant.PICTURE_VIDEO, "pvSharpness"),
-	COLOR("Color(%)", MagicInfoConstant.PICTURE_VIDEO, "pvColor"),
-	TINT("Tint(G/R)(%)", MagicInfoConstant.PICTURE_VIDEO, "pvTint"),
-	COLOR_TONE("ColorTone", MagicInfoConstant.PICTURE_VIDEO, "pvColortone"),
-	COLOR_TEMPERATURE("ColorTemperature", MagicInfoConstant.PICTURE_VIDEO, "pvColorTemperature"),
-	PICTURE_SIZE("PictureSize", MagicInfoConstant.PICTURE_VIDEO, "pvSize"),
-	DIGITAL_CLEAN_VIEW("DigitalCleanView", MagicInfoConstant.PICTURE_VIDEO, "pvDigitalnr"),
-	FILM_MODE("FilmMode", MagicInfoConstant.PICTURE_VIDEO, "pvFilmmode"),
-	HDMI_BLACK_LEVEL("HDMIBlackLevel", MagicInfoConstant.PICTURE_VIDEO, "pvHdmiBlackLevel"),
-	SOUND_MODE("Mode", MagicInfoConstant.SOUND, "soundMode"),
-	PICTURE_ENHANCER("PictureEnhancer", MagicInfoConstant.ADVANCED_SETTING, "pictureEnhancer"),
-	MAX_POWER_SAVING("MaxPowerSaving", MagicInfoConstant.ADVANCED_SETTING, "maxPowerSaving"),
-	AUTO_POWER_ON("AutoPowerOn", MagicInfoConstant.ADVANCED_SETTING, "advancedAutoPower"),
-	REMOTE_CONFIGURATION("RemoteConfiguration", MagicInfoConstant.ADVANCED_SETTING, "networkStandbyMode"),
-	AUTO_SOURCE_SWITCHING("AutoSourceSwitching", MagicInfoConstant.ADVANCED_SETTING, "autoSourceSwitching"),
-	RESTORE_PRIMARY_SOURCE("RestorePrimarySource", MagicInfoConstant.ADVANCED_SETTING, "autoSourceRecovery"),
-	PRIMARY_SOURCE("PrimarySource", MagicInfoConstant.ADVANCED_SETTING, "autoSourcePrimary"),
-	SECONDARY_SOURCE("SecondarySource", MagicInfoConstant.ADVANCED_SETTING, "autoSourceSecondary"),
-	RESET_SOUND("ResetSound", MagicInfoConstant.SOUND, "advancedReset"),
-	RESET_PICTURE("ResetPicture", MagicInfoConstant.PICTURE_VIDEO, "advancedReset"),
-	SCREEN_LAMP_SCHEDULE("ScreenLampSchedule", MagicInfoConstant.MAINTENANCE_GROUP, "mntAutoIsEnable"),
-	MAX_TIME_HOUR("MaxTime(hour)", MagicInfoConstant.MAINTENANCE_GROUP, "mntAutoMaxTime"),
-	MAX_TIME_MINUTE("MaxTime(minute)", MagicInfoConstant.MAINTENANCE_GROUP, "mntAutoMaxTime"),
-	MAX_VALUE("MaxValue", MagicInfoConstant.MAINTENANCE_GROUP, "mntAutoMaxValue"),
-	MIN_TIME_HOUR("MinTime(hour)", MagicInfoConstant.MAINTENANCE_GROUP, "mntAutoMinTime"),
-	MIN_TIME_MINUTE("MinTime(minute)", MagicInfoConstant.MAINTENANCE_GROUP, "mntAutoMinTime"),
-	MIN_VALUE("MinValue", MagicInfoConstant.MAINTENANCE_GROUP, "mntAutoMinValue"),
-	IMMEDIATE_DISPLAY("ImmediateDisplay", MagicInfoConstant.SCREEN_BURN_PROTECTION_GROUP, "mntSafetyScreenRun"),
-	TIMER("Timer", MagicInfoConstant.SCREEN_BURN_PROTECTION_GROUP, "scrSafeTimer"),
-	PIXEL_SHIFT("PixelShift", MagicInfoConstant.SCREEN_BURN_PROTECTION_GROUP, "pixelShiftEnable"),
-	PIXEL_SHIFT_VERTICAL("PixelShiftVertical", MagicInfoConstant.SCREEN_BURN_PROTECTION_GROUP, "pixelShiftV"),
-	PIXEL_SHIFT_HORIZONTAL("PixelShiftHorizontal", MagicInfoConstant.SCREEN_BURN_PROTECTION_GROUP, "pixelShiftH"),
-	PIXEL_SHIFT_TIME("PixelShiftTime(minute)", MagicInfoConstant.SCREEN_BURN_PROTECTION_GROUP, "pixelShiftTime"),
-	TIMER_MODE("TimerMode", MagicInfoConstant.SCREEN_BURN_PROTECTION_GROUP, "scrSafeMode"),
-	TIMER_PERIOD("TimerPeriod(hour)", MagicInfoConstant.SCREEN_BURN_PROTECTION_GROUP, "scrSafePeriod"),
-	TIMER_TIME("TimerTime(sec)", MagicInfoConstant.SCREEN_BURN_PROTECTION_GROUP, "scrSafeTime"),
-	TIMER_START_TIME_MIN("TimerStartTime(minute)", MagicInfoConstant.SCREEN_BURN_PROTECTION_GROUP, "scrSafeStartTime"),
-	TIMER_START_TIME_HOUR("TimerStartTime(hour)", MagicInfoConstant.SCREEN_BURN_PROTECTION_GROUP, "scrSafeStartTime"),
-	TIMER_END_TIME_MIN("TimerEndTime(minute)", MagicInfoConstant.SCREEN_BURN_PROTECTION_GROUP, "scrSafeEndTime"),
-	TIMER_END_TIME_HOUR("TimerEndTime(hour)", MagicInfoConstant.SCREEN_BURN_PROTECTION_GROUP, "scrSafeEndTime"),
+	DISPLAY_PANEL("DisplayPanel", MagicInfoConstant.DISPLAY_CONTROLS_GROUP, "basicPanelStatus",false),
+	SOURCE("Source", MagicInfoConstant.DISPLAY_CONTROLS_GROUP, "basicSource",false),
+	WEB_BROWSER_INTERVAL("WebBrowserRefreshInterval", MagicInfoConstant.DISPLAY_CONTROLS_GROUP, "webBrowserInterval",true),
+	WEB_BROWSER_ZOOM("WebBrowserZoom", MagicInfoConstant.DISPLAY_CONTROLS_GROUP, "webBrowserZoom",true),
+	WEB_BROWSER_HOME_PAGE("WebBrowserHomePage", MagicInfoConstant.DISPLAY_CONTROLS_GROUP, "webBrowserHomepage",true),
+	WEB_BROWSER_PAGE_URL("WebBrowserPageURL", MagicInfoConstant.DISPLAY_CONTROLS_GROUP, "webBrowserPageurl",true),
+	VOLUME("Volume", MagicInfoConstant.DISPLAY_CONTROLS_GROUP, "basicVolume",false),
+	MUTE("Mute", MagicInfoConstant.DISPLAY_CONTROLS_GROUP, "basicMute",false),
+	POWER("Power", MagicInfoConstant.DISPLAY_CONTROLS_GROUP, "",false),
+	RESTART("Restart", MagicInfoConstant.DISPLAY_CONTROLS_GROUP, "",false),
+	TEMPERATURE_CONTROL("TemperatureControl(C)", MagicInfoConstant.TEMPERATURE_GROUP, "diagnosisAlarmTemperature",false),
+	LAMP_CONTROL("LampControl(%)", MagicInfoConstant.PICTURE_VIDEO, "mntManual",false),
+	CONTRAST("Contrast(%)", MagicInfoConstant.PICTURE_VIDEO, "pvContrast",false),
+	BRIGHTNESS("Brightness(%)", MagicInfoConstant.PICTURE_VIDEO, "pvBrightness",false),
+	SHARPNESS("Sharpness(%)", MagicInfoConstant.PICTURE_VIDEO, "pvSharpness",false),
+	COLOR("Color(%)", MagicInfoConstant.PICTURE_VIDEO, "pvColor",false),
+	TINT("Tint(G/R)(%)", MagicInfoConstant.PICTURE_VIDEO, "pvTint",false),
+	COLOR_TONE("ColorTone", MagicInfoConstant.PICTURE_VIDEO, "pvColortone",false),
+	COLOR_TEMPERATURE("ColorTemperature", MagicInfoConstant.PICTURE_VIDEO, "pvColorTemperature",false),
+	PICTURE_SIZE("PictureSize", MagicInfoConstant.PICTURE_VIDEO, "pvSize",false),
+	DIGITAL_CLEAN_VIEW("DigitalCleanView", MagicInfoConstant.PICTURE_VIDEO, "pvDigitalnr",false),
+	FILM_MODE("FilmMode", MagicInfoConstant.PICTURE_VIDEO, "pvFilmmode",false),
+	HDMI_BLACK_LEVEL("HDMIBlackLevel", MagicInfoConstant.PICTURE_VIDEO, "pvHdmiBlackLevel",false),
+	SOUND_MODE("Mode", MagicInfoConstant.SOUND, "soundMode",false),
+	PICTURE_ENHANCER("PictureEnhancer", MagicInfoConstant.ADVANCED_SETTING, "pictureEnhancer",false),
+	MAX_POWER_SAVING("MaxPowerSaving", MagicInfoConstant.ADVANCED_SETTING, "maxPowerSaving",false),
+	AUTO_POWER_ON("AutoPowerOn", MagicInfoConstant.ADVANCED_SETTING, "advancedAutoPower",false),
+	REMOTE_CONFIGURATION("RemoteConfiguration", MagicInfoConstant.ADVANCED_SETTING, "networkStandbyMode",false),
+	AUTO_SOURCE_SWITCHING("AutoSourceSwitching", MagicInfoConstant.ADVANCED_SETTING, "autoSourceSwitching",true),
+	RESTORE_PRIMARY_SOURCE("RestorePrimarySource", MagicInfoConstant.ADVANCED_SETTING, "autoSourceRecovery",false),
+	PRIMARY_SOURCE("PrimarySource", MagicInfoConstant.ADVANCED_SETTING, "autoSourcePrimary",false),
+	SECONDARY_SOURCE("SecondarySource", MagicInfoConstant.ADVANCED_SETTING, "autoSourceSecondary",false),
+	RESET_SOUND("ResetSound", MagicInfoConstant.SOUND, "advancedReset",false),
+	RESET_PICTURE("ResetPicture", MagicInfoConstant.PICTURE_VIDEO, "advancedReset",false),
+	SCREEN_LAMP_SCHEDULE("ScreenLampSchedule", MagicInfoConstant.MAINTENANCE_GROUP, "mntAutoIsEnable",true),
+	MAX_TIME_HOUR("MaxTime(hour)", MagicInfoConstant.MAINTENANCE_GROUP, "mntAutoMaxTime",true),
+	MAX_TIME_MINUTE("MaxTime(minute)", MagicInfoConstant.MAINTENANCE_GROUP, "mntAutoMaxTime",true),
+	MAX_VALUE("MaxValue", MagicInfoConstant.MAINTENANCE_GROUP, "mntAutoMaxValue",true),
+	MIN_TIME_HOUR("MinTime(hour)", MagicInfoConstant.MAINTENANCE_GROUP, "mntAutoMinTime",true),
+	MIN_TIME_MINUTE("MinTime(minute)", MagicInfoConstant.MAINTENANCE_GROUP, "mntAutoMinTime",true),
+	MIN_VALUE("MinValue", MagicInfoConstant.MAINTENANCE_GROUP, "mntAutoMinValue",true),
+	IMMEDIATE_DISPLAY("ImmediateDisplay", MagicInfoConstant.SCREEN_BURN_PROTECTION_GROUP, "mntSafetyScreenRun",false),
+	TIMER("Timer", MagicInfoConstant.SCREEN_BURN_PROTECTION_GROUP, "scrSafeTimer",true),
+	PIXEL_SHIFT("PixelShift", MagicInfoConstant.SCREEN_BURN_PROTECTION_GROUP, "pixelShiftEnable",true),
+	PIXEL_SHIFT_VERTICAL("PixelShiftVertical", MagicInfoConstant.SCREEN_BURN_PROTECTION_GROUP, "pixelShiftV",true),
+	PIXEL_SHIFT_HORIZONTAL("PixelShiftHorizontal", MagicInfoConstant.SCREEN_BURN_PROTECTION_GROUP, "pixelShiftH",true),
+	PIXEL_SHIFT_TIME("PixelShiftTime(minute)", MagicInfoConstant.SCREEN_BURN_PROTECTION_GROUP, "pixelShiftTime",true),
+	TIMER_MODE("TimerMode", MagicInfoConstant.SCREEN_BURN_PROTECTION_GROUP, "scrSafeMode",false),
+	TIMER_PERIOD("TimerPeriod(hour)", MagicInfoConstant.SCREEN_BURN_PROTECTION_GROUP, "scrSafePeriod",true),
+	TIMER_TIME("TimerTime(sec)", MagicInfoConstant.SCREEN_BURN_PROTECTION_GROUP, "scrSafeTime",true),
+	TIMER_START_TIME_MIN("TimerStartTime(minute)", MagicInfoConstant.SCREEN_BURN_PROTECTION_GROUP, "scrSafeStartTime",true),
+	TIMER_START_TIME_HOUR("TimerStartTime(hour)", MagicInfoConstant.SCREEN_BURN_PROTECTION_GROUP, "scrSafeStartTime",true),
+	TIMER_END_TIME_MIN("TimerEndTime(minute)", MagicInfoConstant.SCREEN_BURN_PROTECTION_GROUP, "scrSafeEndTime",true),
+	TIMER_END_TIME_HOUR("TimerEndTime(hour)", MagicInfoConstant.SCREEN_BURN_PROTECTION_GROUP, "scrSafeEndTime",true),
 	;
 	private final String name;
 	private final String group;
 	private final String fieldName;
+	private final boolean isObject;
 
 	/**
 	 * Constructor for DisplayInfo.
@@ -82,10 +83,11 @@ public enum DisplayInfo {
 	 * @param group The group to which the setting belongs.
 	 * @param fieldName The field name for reference.
 	 */
-	DisplayInfo(String name, String group, String fieldName) {
+	DisplayInfo(String name, String group, String fieldName, boolean isObject) {
 		this.name = name;
 		this.group = group;
 		this.fieldName = fieldName;
+		this.isObject = isObject;
 	}
 
 	/**
@@ -113,6 +115,15 @@ public enum DisplayInfo {
 	 */
 	public String getFieldName() {
 		return fieldName;
+	}
+
+	/**
+	 * Retrieves {@link #isObject}
+	 *
+	 * @return value of {@link #isObject}
+	 */
+	public boolean isObject() {
+		return isObject;
 	}
 
 	/**

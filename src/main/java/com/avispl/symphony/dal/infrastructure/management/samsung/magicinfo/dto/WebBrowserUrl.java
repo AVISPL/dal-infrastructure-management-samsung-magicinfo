@@ -5,7 +5,7 @@
 package com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.dto;
 
 /**
- * WebBrowserUrl
+ * Represents a configuration for WebBrowserUrl
  *
  * @author Harry / Symphony Dev Team<br>
  * Created on 9/19/2023

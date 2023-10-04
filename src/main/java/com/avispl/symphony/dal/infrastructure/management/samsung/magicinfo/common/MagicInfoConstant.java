@@ -42,13 +42,15 @@ public class MagicInfoConstant {
 	public static final String SUCCESS = "Success";
 	public static final String INPUT_SOURCE = "inputSources";
 	public static final String INPUT_FUNCTION = "functionTypes";
+	public static final String MENU = "menu";
+	public static final String VALUE = "value";
+	public static final String RESTART_VALUE = "restart";
 	public static final String TRUE = "true";
 	public static final String NUMBER_ONE = "1";
 	public static final String NUMBER_TWO = "2";
 	public static final String ZERO = "0";
 	public static final String SAMSUNG_DISPLAY = "Samsung Display";
 	public static final String CUSTOM = "Custom";
-	public static final String SEMICOLON = ";";
 	public static final String COLON = ":";
 	public static final String HASH = "#";
 	public static final String DOT = ".";
@@ -69,4 +71,11 @@ public class MagicInfoConstant {
 	public static final String RESTARTING = "Restarting";
 	public static final String RESET  = "Reset";
 	public static final String RESETTING = "Resetting";
+	public static final String ALL  = "ALL";
+	public static final String SAFE_PERIOD_DEFAULT = "1";
+	public static final String SAFE_TIME_DEFAULT  = "10";
+	public static final String TIME_DEFAULT  = "12:00AM";
+	public static final String SAFE_REPEAT_MODE_DEFAULT  = "4";
+	public static final String SAFE_INTERVAL_MODE_DEFAULT  = "132";
+	public static final String[] TIMER_TIME_VALUES  = new String[] { "1", "10", "20", "30", "40", "50" };
 }

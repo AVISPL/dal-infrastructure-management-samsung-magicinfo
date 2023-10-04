@@ -5,7 +5,7 @@
 package com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.dto;
 
 /**
- * RepeatTimer
+ * Represents a configuration for RepeatTimer
  *
  * @author Harry / Symphony Dev Team<br>
  * Created on 9/26/2023

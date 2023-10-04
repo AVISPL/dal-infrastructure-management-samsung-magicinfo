@@ -5,7 +5,7 @@
 package com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.dto;
 
 /**
- * IntervalTimer
+ * Represents a configuration for Interval Timer.
  *
  * @author Harry / Symphony Dev Team<br>
  * Created on 9/26/2023

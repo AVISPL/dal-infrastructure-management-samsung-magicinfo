@@ -5,7 +5,7 @@
 package com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.dto;
 
 /**
- * Maintenance
+ * Represents a configuration for Maintenance
  *
  * @author Harry / Symphony Dev Team<br>
  * Created on 9/20/2023

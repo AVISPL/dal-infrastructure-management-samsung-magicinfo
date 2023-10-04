@@ -5,7 +5,7 @@
 package com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.dto;
 
 /**
- * PixelShift
+ * Represents a configuration for PixelShift
  *
  * @author Harry / Symphony Dev Team<br>
  * Created on 9/22/2023

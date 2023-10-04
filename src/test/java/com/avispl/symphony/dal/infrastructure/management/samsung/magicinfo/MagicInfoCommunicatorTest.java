@@ -9,7 +9,6 @@ import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -62,6 +61,11 @@ public class MagicInfoCommunicatorTest {
 		Assert.assertEquals(4, statistics.size());
 	}
 
+	/**
+	 * Test case for retrieving multiple statistics from MagicInfo Communicator.
+	 *
+	 * @throws Exception If an exception occurs during the test.
+	 */
 	@Test
 	void testGetMultipleStatistics() throws Exception {
 		magicInfoCommunicator.getMultipleStatistics();
@@ -71,10 +75,15 @@ public class MagicInfoCommunicatorTest {
 		Assert.assertEquals(2, aggregatedDeviceList.size());
 	}
 
+	/**
+	 * Test case for filtering aggregated devices by device source.
+	 *
+	 * @throws Exception If an exception occurs during the test.
+	 */
 	@Test
 	void testFiltering() throws Exception {
-		magicInfoCommunicator.setFilterDeviceType("S6PLAYER,S10PLAYER");
-		magicInfoCommunicator.setFilterSource("");
+		magicInfoCommunicator.setFilterDeviceType("");
+		magicInfoCommunicator.setFilterSource("MagicInfo-Lite/S");
 		magicInfoCommunicator.setFilterFunction("");
 		magicInfoCommunicator.getMultipleStatistics();
 		magicInfoCommunicator.retrieveMultipleStatistics();
@@ -83,6 +92,11 @@ public class MagicInfoCommunicatorTest {
 		Assert.assertEquals(2, aggregatedDeviceList.size());
 	}
 
+	/**
+	 * Test case for retrieving multiple statistics with historical data.
+	 *
+	 * @throws Exception If an exception occurs during the test.
+	 */
 	@Test
 	void testGetMultipleStatisticsWithHistorical() throws Exception {
 		magicInfoCommunicator.setHistoricalProperties("Temperature(C)");
@@ -94,6 +108,11 @@ public class MagicInfoCommunicatorTest {
 		Assert.assertEquals(1, aggregatedDeviceList.get(0).getDynamicStatistics().size());
 	}
 
+	/**
+	 * Test case for controlling a property using MagicInfo Communicator.
+	 *
+	 * @throws Exception If an exception occurs during the test.
+	 */
 	@Test
 	void testTextControl() throws Exception {
 		magicInfoCommunicator.getMultipleStatistics();
@@ -101,24 +120,8 @@ public class MagicInfoCommunicatorTest {
 		Thread.sleep(30000);
 		magicInfoCommunicator.retrieveMultipleStatistics();
 		ControllableProperty controllableProperty = new ControllableProperty();
-		String property = MagicInfoConstant.MAINTENANCE_GROUP.concat("MaxTime(minute)");
-		String value = "15";
-		String deviceId = "a0-d0-5b-b2-e8-91";  //LFD_1
-		controllableProperty.setProperty(property);
-		controllableProperty.setValue(value);
-		controllableProperty.setDeviceId(deviceId);
-		magicInfoCommunicator.controlProperty(controllableProperty);
-	}
-
-	@Test
-	void testText() throws Exception {
-		magicInfoCommunicator.getMultipleStatistics();
-		magicInfoCommunicator.retrieveMultipleStatistics();
-		Thread.sleep(30000);
-		magicInfoCommunicator.retrieveMultipleStatistics();
-		ControllableProperty controllableProperty = new ControllableProperty();
-		String property = MagicInfoConstant.SCREEN_BURN_PROTECTION_GROUP.concat("Timer");
-		String value = "Repeat";
+		String property = MagicInfoConstant.MAINTENANCE_GROUP.concat("MinValue");
+		String value = "85";
 		String deviceId = "5c-49-7d-17-3c-81";
 		controllableProperty.setProperty(property);
 		controllableProperty.setValue(value);
@@ -126,6 +129,32 @@ public class MagicInfoCommunicatorTest {
 		magicInfoCommunicator.controlProperty(controllableProperty);
 	}
 
+	/**
+	 * Test case for performing a text operation using MagicInfo Communicator.
+	 *
+	 * @throws Exception If an exception occurs during the test.
+	 */
+	@Test
+	void testText() throws Exception {
+		magicInfoCommunicator.getMultipleStatistics();
+		magicInfoCommunicator.retrieveMultipleStatistics();
+		Thread.sleep(20000);
+		magicInfoCommunicator.retrieveMultipleStatistics();
+		ControllableProperty controllableProperty = new ControllableProperty();
+		String property = MagicInfoConstant.SCREEN_BURN_PROTECTION_GROUP.concat("Timer");
+		String value = "Interval";
+		String deviceId = "5c-49-7d-17-3c-81";
+		controllableProperty.setProperty(property);
+		controllableProperty.setValue(value);
+		controllableProperty.setDeviceId(deviceId);
+		magicInfoCommunicator.controlProperty(controllableProperty);
+	}
+
+	/**
+	 * Test case for performing a text operation using MagicInfo Communicator.
+	 *
+	 * @throws Exception If an exception occurs during the test.
+	 */
 	@Test
 	void testReset() throws Exception {
 		magicInfoCommunicator.getMultipleStatistics();
