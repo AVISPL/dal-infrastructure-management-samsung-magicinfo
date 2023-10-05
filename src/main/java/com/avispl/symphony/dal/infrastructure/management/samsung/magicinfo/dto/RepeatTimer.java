@@ -22,6 +22,19 @@ public class RepeatTimer {
 	private String scrSafePeriod;
 	private String scrSafeTime;
 
+	/**
+	 * Constructs a {@code RepeatTimer} object with specified initial values.
+	 *
+	 * @param scrSafeChanged Indicates whether screen safety settings have changed.
+	 * @param mntAutoChanged Indicates whether maintenance auto settings have changed.
+	 * @param autoSourceChanged Indicates whether auto source settings have changed.
+	 * @param pixelShiftChanged Indicates whether pixel shift settings have changed.
+	 * @param webBrowserChanged Indicates whether web browser settings have changed.
+	 * @param scrSafeTimer Indicates whether the timer is enabled.
+	 * @param scrSafeMode The timer mode (e.g., repeat mode).
+	 * @param scrSafePeriod The timer period setting.
+	 * @param scrSafeTime The timer time setting.
+	 */
 	public RepeatTimer(boolean scrSafeChanged, boolean mntAutoChanged, boolean autoSourceChanged, boolean pixelShiftChanged, boolean webBrowserChanged, String scrSafeTimer, String scrSafeMode,
 			String scrSafePeriod, String scrSafeTime) {
 		this.scrSafeChanged = scrSafeChanged;
@@ -35,6 +48,10 @@ public class RepeatTimer {
 		this.scrSafeTime = scrSafeTime;
 	}
 
+	/**
+	 * Constructs an empty {@code RepeatTimer} object with default values.
+	 * Use setters to configure individual timer-related properties as needed.
+	 */
 	public RepeatTimer() {
 	}
 

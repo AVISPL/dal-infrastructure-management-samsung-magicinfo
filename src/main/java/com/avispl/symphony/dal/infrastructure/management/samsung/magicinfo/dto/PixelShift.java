@@ -22,6 +22,19 @@ public class PixelShift {
 	private String pixelShiftV;
 	private String pixelShiftTime;
 
+	/**
+	 * Constructs a {@code PixelShift} object with specified initial values.
+	 *
+	 * @param pixelShiftChanged Indicates whether pixel shift settings have changed.
+	 * @param autoSourceChanged Indicates whether auto source settings have changed.
+	 * @param mntAutoChanged Indicates whether maintenance auto settings have changed.
+	 * @param scrSafeChanged Indicates whether screen safety settings have changed.
+	 * @param webBrowserChanged Indicates whether web browser settings have changed.
+	 * @param pixelShiftEnable Indicates whether pixel shift is enabled.
+	 * @param pixelShiftH The horizontal pixel shift value.
+	 * @param pixelShiftV The vertical pixel shift value.
+	 * @param pixelShiftTime The time interval for pixel shift.
+	 */
 	public PixelShift(boolean pixelShiftChanged, boolean autoSourceChanged, boolean mntAutoChanged, boolean scrSafeChanged, boolean webBrowserChanged, String pixelShiftEnable, String pixelShiftH,
 			String pixelShiftV, String pixelShiftTime) {
 		this.pixelShiftChanged = pixelShiftChanged;
@@ -35,6 +48,10 @@ public class PixelShift {
 		this.pixelShiftTime = pixelShiftTime;
 	}
 
+	/**
+	 * Constructs an empty {@code PixelShift} object with default values.
+	 * Use setters to configure individual pixel shift-related properties as needed.
+	 */
 	public PixelShift() {
 	}
 

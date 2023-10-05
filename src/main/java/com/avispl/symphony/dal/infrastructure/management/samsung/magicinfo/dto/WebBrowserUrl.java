@@ -22,6 +22,19 @@ public class WebBrowserUrl {
 	private String webBrowserPageurl;
 	private boolean webBrowserChanged;
 
+	/**
+	 * Constructs a {@code WebBrowserUrl} object with specified initial values.
+	 *
+	 * @param mntAutoChanged Indicates whether maintenance auto settings have changed.
+	 * @param scrSafeChanged Indicates whether screen safety settings have changed.
+	 * @param pixelShiftChanged Indicates whether pixel shift settings have changed.
+	 * @param autoSourceChanged Indicates whether auto source settings have changed.
+	 * @param webBrowserInterval The interval setting for web browsing.
+	 * @param webBrowserZoom The zoom setting for web browsing.
+	 * @param webBrowserHomepage The homepage URL for the web browser.
+	 * @param webBrowserPageurl The page URL for the web browser.
+	 * @param webBrowserChanged Indicates whether web browser settings have changed.
+	 */
 	public WebBrowserUrl(boolean mntAutoChanged, boolean scrSafeChanged, boolean pixelShiftChanged, boolean autoSourceChanged, String webBrowserInterval, String webBrowserZoom,
 			String webBrowserHomepage,
 			String webBrowserPageurl, boolean webBrowserChanged) {
@@ -36,6 +49,10 @@ public class WebBrowserUrl {
 		this.webBrowserChanged = webBrowserChanged;
 	}
 
+	/**
+	 * Constructs an empty {@code WebBrowserUrl} object with default values.
+	 * Use setters to configure individual web browser-related properties as needed.
+	 */
 	public WebBrowserUrl() {
 	}
 

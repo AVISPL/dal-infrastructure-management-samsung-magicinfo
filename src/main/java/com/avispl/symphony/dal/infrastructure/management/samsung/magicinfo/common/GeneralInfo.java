@@ -36,6 +36,7 @@ public enum GeneralInfo {
 	CODE("Code"),
 	SERIAL_KEY("SerialKey"),
 	PANEL_ON_TIME("PanelOnTime(hour)"),
+	SOURCE("DisplaySource"),
 	;
 	private final String name;
 

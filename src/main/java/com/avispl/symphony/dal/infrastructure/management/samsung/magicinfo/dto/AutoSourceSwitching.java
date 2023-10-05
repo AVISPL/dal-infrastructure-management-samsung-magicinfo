@@ -18,6 +18,19 @@ public class AutoSourceSwitching {
 	private String autoSourcePrimary;
 	private String autoSourceSecondary;
 
+	/**
+	 * Constructs an {@code AutoSourceSwitching} object with specified initial values.
+	 *
+	 * @param autoSourceChanged Indicates whether auto source has changed.
+	 * @param mntAutoChanged Indicates whether maintenance auto settings have changed.
+	 * @param scrSafeChanged Indicates whether screen safety settings have changed.
+	 * @param pixelShiftChanged Indicates whether pixel shift settings have changed.
+	 * @param webBrowserChanged Indicates whether web browser settings have changed.
+	 * @param autoSourceSwitching The auto source switching configuration.
+	 * @param autoSourceRecovery The auto source recovery configuration.
+	 * @param autoSourcePrimary The primary auto source configuration.
+	 * @param autoSourceSecondary The secondary auto source configuration.
+	 */
 	public AutoSourceSwitching(boolean autoSourceChanged, boolean mntAutoChanged, boolean scrSafeChanged, boolean pixelShiftChanged, boolean webBrowserChanged, String autoSourceSwitching,
 			String autoSourceRecovery, String autoSourcePrimary, String autoSourceSecondary) {
 		this.autoSourceChanged = autoSourceChanged;
@@ -31,6 +44,10 @@ public class AutoSourceSwitching {
 		this.autoSourceSecondary = autoSourceSecondary;
 	}
 
+	/**
+	 * Constructs an empty {@code AutoSourceSwitching} object with default values.
+	 * Use setters to configure individual properties as needed.
+	 */
 	public AutoSourceSwitching() {
 	}
 

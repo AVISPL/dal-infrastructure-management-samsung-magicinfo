@@ -22,6 +22,19 @@ public class IntervalTimer {
 	private String scrSafeStartTime;
 	private String scrSafeEndTime;
 
+	/**
+	 * Constructs an {@code IntervalTimer} object with specified initial values.
+	 *
+	 * @param scrSafeChanged Indicates whether screen safety timer settings have changed.
+	 * @param mntAutoChanged Indicates whether maintenance auto timer settings have changed.
+	 * @param autoSourceChanged Indicates whether auto source timer settings have changed.
+	 * @param pixelShiftChanged Indicates whether pixel shift timer settings have changed.
+	 * @param webBrowserChanged Indicates whether web browser timer settings have changed.
+	 * @param scrSafeTimer The screen safety timer configuration.
+	 * @param scrSafeMode The screen safety mode configuration.
+	 * @param scrSafeStartTime The start time for screen safety timer.
+	 * @param scrSafeEndTime The end time for screen safety timer.
+	 */
 	public IntervalTimer(boolean scrSafeChanged, boolean mntAutoChanged, boolean autoSourceChanged, boolean pixelShiftChanged, boolean webBrowserChanged, String scrSafeTimer, String scrSafeMode,
 			String scrSafeStartTime, String scrSafeEndTime) {
 		this.scrSafeChanged = scrSafeChanged;
@@ -35,6 +48,10 @@ public class IntervalTimer {
 		this.scrSafeEndTime = scrSafeEndTime;
 	}
 
+	/**
+	 * Constructs an empty {@code IntervalTimer} object with default values.
+	 * Use setters to configure individual timer properties as needed.
+	 */
 	public IntervalTimer() {
 	}
 

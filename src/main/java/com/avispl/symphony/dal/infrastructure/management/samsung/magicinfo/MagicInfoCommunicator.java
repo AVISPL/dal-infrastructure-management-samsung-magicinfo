@@ -1093,8 +1093,6 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 			} else {
 				throw new IllegalArgumentException(String.format("Unable to control property: %s as the device does not exist.", property));
 			}
-		} catch (Exception e) {
-			throw new IllegalArgumentException("Unable to control property: %s", e);
 		} finally {
 			reentrantLock.unlock();
 		}
@@ -1416,7 +1414,6 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 					List<AdvancedControllableProperty> advancedControllableProperties = new ArrayList<>();
 					Map<String, String> dynamics = new HashMap<>();
 					Map<String, String> stats = new HashMap<>();
-					aggregatedDevice.setDeviceOnline(true);
 					mapGeneralInformationProperties(aggregatedDevice.getProperties(), stats);
 					mapDisplayInformationProperties(aggregatedDevice.getProperties(), stats, advancedControllableProperties);
 					mapDynamicStatistic(aggregatedDevice.getProperties(), stats, dynamics);
@@ -1452,6 +1449,14 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 				case DISK_SPACE_USAGE:
 				case AVAILABLE_CAPACITY:
 					stats.put(propertyName, convertToMemoryFormat(value));
+					break;
+				case SOURCE:
+					List<String> availableValues = Arrays.stream(EnumTypeHandler.getEnumValues(SourceEnum.class)).collect(Collectors.toList());
+					if (availableValues.contains(value)) {
+						stats.put(propertyName, EnumTypeHandler.getNameByValue(SourceEnum.class, value));
+					} else {
+						stats.put(propertyName, MagicInfoConstant.NONE);
+					}
 					break;
 				default:
 					stats.put(propertyName, value);
@@ -1551,20 +1556,12 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 					addAdvanceControlProperties(advancedControllableProperties, stats,
 							createDropdown(propertyName, EnumTypeHandler.getEnumNames(WebBrowserZoomEnum.class), EnumTypeHandler.getNameByValue(WebBrowserZoomEnum.class, value)), value);
 					break;
-				case SOURCE:
-					List<String> availableValues = Arrays.stream(EnumTypeHandler.getEnumValues(SourceEnum.class)).collect(Collectors.toList());
-					if (availableValues.contains(value)) {
-						stats.put(propertyName, EnumTypeHandler.getNameByValue(SourceEnum.class, value));
-					} else {
-						stats.put(propertyName, MagicInfoConstant.NONE);
-					}
-					break;
 				case COLOR_TONE:
 					addAdvanceControlProperties(advancedControllableProperties, stats,
 							createDropdown(propertyName, EnumTypeHandler.getEnumNames(ColorToneEnum.class), EnumTypeHandler.getNameByValue(ColorToneEnum.class, value)), value);
 					break;
 				case COLOR_TEMPERATURE:
-					availableValues = Arrays.stream(EnumTypeHandler.getEnumValues(ColorTemperatureEnum.class)).collect(Collectors.toList());
+					List<String> availableValues = Arrays.stream(EnumTypeHandler.getEnumValues(ColorTemperatureEnum.class)).collect(Collectors.toList());
 					if (availableValues.contains(value)) {
 						stats.put(propertyName, EnumTypeHandler.getNameByValue(ColorTemperatureEnum.class, value));
 					} else {

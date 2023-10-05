@@ -17,7 +17,6 @@ import java.util.Optional;
  */
 public enum DisplayInfo {
 	DISPLAY_PANEL("DisplayPanel", MagicInfoConstant.DISPLAY_CONTROLS_GROUP, "basicPanelStatus",false),
-	SOURCE("Source", MagicInfoConstant.DISPLAY_CONTROLS_GROUP, "basicSource",false),
 	WEB_BROWSER_INTERVAL("WebBrowserRefreshInterval", MagicInfoConstant.DISPLAY_CONTROLS_GROUP, "webBrowserInterval",true),
 	WEB_BROWSER_ZOOM("WebBrowserZoom", MagicInfoConstant.DISPLAY_CONTROLS_GROUP, "webBrowserZoom",true),
 	WEB_BROWSER_HOME_PAGE("WebBrowserHomePage", MagicInfoConstant.DISPLAY_CONTROLS_GROUP, "webBrowserHomepage",true),

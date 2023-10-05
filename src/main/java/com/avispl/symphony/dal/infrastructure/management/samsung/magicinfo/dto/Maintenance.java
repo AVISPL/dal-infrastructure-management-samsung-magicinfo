@@ -23,6 +23,20 @@ public class Maintenance {
 	private String mntAutoMinTime;
 	private String mntAutoMinValue;
 
+	/**
+	 * Constructs a {@code Maintenance} object with specified initial values.
+	 *
+	 * @param mntAutoChanged Indicates whether maintenance auto settings have changed.
+	 * @param scrSafeChanged Indicates whether screen safety settings have changed.
+	 * @param pixelShiftChanged Indicates whether pixel shift settings have changed.
+	 * @param autoSourceChanged Indicates whether auto source settings have changed.
+	 * @param webBrowserChanged Indicates whether web browser settings have changed.
+	 * @param mntAutoIsEnable Indicates whether maintenance auto is enabled.
+	 * @param mntAutoMaxTime The maximum time for maintenance auto.
+	 * @param mntAutoMaxValue The maximum value for maintenance auto.
+	 * @param mntAutoMinTime The minimum time for maintenance auto.
+	 * @param mntAutoMinValue The minimum value for maintenance auto.
+	 */
 	public Maintenance(boolean mntAutoChanged, boolean scrSafeChanged, boolean pixelShiftChanged, boolean autoSourceChanged, boolean webBrowserChanged, String mntAutoIsEnable, String mntAutoMaxTime,
 			String mntAutoMaxValue, String mntAutoMinTime, String mntAutoMinValue) {
 		this.mntAutoChanged = mntAutoChanged;
@@ -37,6 +51,10 @@ public class Maintenance {
 		this.mntAutoMinValue = mntAutoMinValue;
 	}
 
+	/**
+	 * Constructs an empty {@code Maintenance} object with default values.
+	 * Use setters to configure individual maintenance-related properties as needed.
+	 */
 	public Maintenance() {
 	}
 

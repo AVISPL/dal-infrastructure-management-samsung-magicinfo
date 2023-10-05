@@ -39,7 +39,7 @@ models:
         SerialKey: get("generalConf")?.get("serialDecimal")
 
         DisplayPanel: get("basicPanelStatus")
-        Source: get("basicSource")
+        DisplaySource: get("basicSource")
         WebBrowserRefreshInterval: get("webBrowserUrl")?.get("webBrowserInterval")
         WebBrowserZoom: get("webBrowserUrl")?.get("webBrowserZoom")
         WebBrowserHomePage: get("webBrowserUrl")?.get("webBrowserHomepage")
