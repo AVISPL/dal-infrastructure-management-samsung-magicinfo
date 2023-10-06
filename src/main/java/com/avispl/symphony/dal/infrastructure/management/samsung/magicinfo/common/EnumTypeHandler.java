@@ -37,6 +37,11 @@ public class EnumTypeHandler {
 		return names.toArray(new String[names.size()]);
 	}
 
+	/**
+	 * Get an array of all enum vales
+	 *
+	 * @param enumType the enum type is enum class
+	 */
 	public static <T extends Enum<T>> String[] getEnumValues(Class<T> enumType) {
 		List<String> values = new ArrayList<>();
 		for (T c : enumType.getEnumConstants()) {

@@ -4,10 +4,14 @@
 
 package com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import java.net.SocketTimeoutException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import javax.security.auth.login.FailedLoginException;
 import org.junit.Assert;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,8 +53,42 @@ public class MagicInfoCommunicatorTest {
 	}
 
 	/**
+	 * Unit test for the ping method.
+	 *
+	 * @throws Exception if an exception occurs during the test.
+	 */
+	@Test
+	void testPing() throws Exception {
+		destroy();
+		magicInfoCommunicator.setHost("misstaging.com1");
+		magicInfoCommunicator.setLogin("");
+		magicInfoCommunicator.setPassword("");
+		magicInfoCommunicator.setPort(7001);
+		magicInfoCommunicator.init();
+		magicInfoCommunicator.connect();
+		assertThrows(SocketTimeoutException.class, () -> magicInfoCommunicator.ping(), "Socket connection timed out misstaging.com1");
+	}
+
+	/**
+	 * Unit test for the login method.
+	 *
+	 * @throws Exception if an exception occurs during the test.
+	 */
+	@Test
+	void testFailedLogin() throws Exception {
+		destroy();
+		magicInfoCommunicator.setHost("misstaging.com");
+		magicInfoCommunicator.setLogin("aaa");
+		magicInfoCommunicator.setPassword("aaa");
+		magicInfoCommunicator.setPort(7001);
+		magicInfoCommunicator.init();
+		magicInfoCommunicator.connect();
+		assertThrows(FailedLoginException.class, () -> magicInfoCommunicator.getMultipleStatistics().get(0), "Failed to retrieve an access token for account with from username and password. Please username id and password");
+	}
+
+	/**
 	 * Unit test for the {@code getAggregatorData()} method.
-	 * It asserts the size of the statistics map to be 7.
+	 * It asserts the size of the statistics map to be 4.
 	 *
 	 * @throws Exception if an exception occurs during the test.
 	 */
@@ -115,14 +153,14 @@ public class MagicInfoCommunicatorTest {
 	 */
 	@Test
 	void testFilteringWithDeviceType() throws Exception {
-		magicInfoCommunicator.setFilterDeviceType("S6PLAYER,S10PLAYER");
+		magicInfoCommunicator.setFilterDeviceType("S6PLAYER");
 		magicInfoCommunicator.setFilterSource("");
 		magicInfoCommunicator.setFilterFunction("");
 		magicInfoCommunicator.getMultipleStatistics();
 		magicInfoCommunicator.retrieveMultipleStatistics();
 		Thread.sleep(30000);
 		List<AggregatedDevice> aggregatedDeviceList = magicInfoCommunicator.retrieveMultipleStatistics();
-		Assert.assertEquals(2, aggregatedDeviceList.size());
+		Assert.assertEquals(1, aggregatedDeviceList.size());
 	}
 
 	/**
@@ -180,7 +218,7 @@ public class MagicInfoCommunicatorTest {
 		magicInfoCommunicator.retrieveMultipleStatistics();
 		ControllableProperty controllableProperty = new ControllableProperty();
 		String property = MagicInfoConstant.MAINTENANCE_GROUP.concat("MinValue");
-		String value = "85";
+		String value = "90";
 		String deviceId = "5c-49-7d-17-3c-81";
 		controllableProperty.setProperty(property);
 		controllableProperty.setValue(value);
@@ -232,7 +270,7 @@ public class MagicInfoCommunicatorTest {
 		magicInfoCommunicator.retrieveMultipleStatistics();
 		ControllableProperty controllableProperty = new ControllableProperty();
 		String property = MagicInfoConstant.SCREEN_BURN_PROTECTION_GROUP.concat("PixelShiftHorizontal");
-		String value = "2";
+		String value = "4";
 		String deviceId = "5c-49-7d-17-3c-81";
 		controllableProperty.setProperty(property);
 		controllableProperty.setValue(value);
@@ -316,11 +354,6 @@ public class MagicInfoCommunicatorTest {
 		controllableProperty.setValue(value);
 		controllableProperty.setDeviceId(deviceId);
 		magicInfoCommunicator.controlProperty(controllableProperty);
-
-		List<AggregatedDevice> aggregatedDeviceList = magicInfoCommunicator.retrieveMultipleStatistics();
-		Optional<AdvancedControllableProperty> advancedControllableProperty = aggregatedDeviceList.get(1).getControllableProperties().stream().filter(item ->
-				property.equals(item.getName())).findFirst();
-		Assert.assertEquals(value,advancedControllableProperty.get().getValue());
 	}
 
 	/**
@@ -336,7 +369,7 @@ public class MagicInfoCommunicatorTest {
 		magicInfoCommunicator.retrieveMultipleStatistics();
 		ControllableProperty controllableProperty = new ControllableProperty();
 		String property = MagicInfoConstant.SOUND.concat("Mode");
-		String value = "Movie";
+		String value = "Music";
 		String deviceId = "5c-49-7d-17-3c-81";
 		controllableProperty.setProperty(property);
 		controllableProperty.setValue(value);

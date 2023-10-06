@@ -44,6 +44,8 @@ public class MagicInfoConstant {
 	public static final String INPUT_FUNCTION = "functionTypes";
 	public static final String MENU = "menu";
 	public static final String VALUE = "value";
+	public static final String POWER = "power";
+	public static final String API_KEY = "api_key";
 	public static final String RESTART_VALUE = "restart";
 	public static final String TRUE = "true";
 	public static final String NUMBER_ONE = "1";
@@ -56,6 +58,7 @@ public class MagicInfoConstant {
 	public static final String DOT = ".";
 	public static final String DOT_REGEX = "\\.";
 	public static final String DASH = "-";
+	public static final String COMMA = ",";
 	public static final String AUTO_SOURCE_SWITCHING = "AutoSourceSwitching";
 	public static final String TIMER = "Timer";
 	public static final String WEB_BROWSER_HOME_PAGE = "WebBrowserHomePage";
@@ -78,4 +81,9 @@ public class MagicInfoConstant {
 	public static final String SAFE_REPEAT_MODE_DEFAULT  = "4";
 	public static final String SAFE_INTERVAL_MODE_DEFAULT  = "132";
 	public static final String[] TIMER_TIME_VALUES  = new String[] { "1", "10", "20", "30", "40", "50" };
+	public static final String PM  = "PM";
+	public static final String AM  = "AM";
+	public static final String MB  = "MB";
+	public static final String GB  = "GB";
+	public static final String PAGE_SIZE_DEFAULT_FILTER  = "400";
 }
