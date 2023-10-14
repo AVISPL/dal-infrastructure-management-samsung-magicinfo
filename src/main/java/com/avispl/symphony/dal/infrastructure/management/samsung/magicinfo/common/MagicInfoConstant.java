@@ -63,6 +63,7 @@ public class MagicInfoConstant {
 	public static final String TIMER = "Timer";
 	public static final String WEB_BROWSER_HOME_PAGE = "WebBrowserHomePage";
 	public static final String AUTO_SOURCE = "autoSourceSwitching";
+	public static final String AUTO_SOURCE_CHANGE = "autoSourceChanged";
 	public static final String MNT_AUTO = "mntAuto";
 	public static final String MNT_PIXEL_SHIFT = "mntPixelShift";
 	public static final String MNT_SAFETY_SCREEN_TIMER = "mntSafetyScreenTimer";

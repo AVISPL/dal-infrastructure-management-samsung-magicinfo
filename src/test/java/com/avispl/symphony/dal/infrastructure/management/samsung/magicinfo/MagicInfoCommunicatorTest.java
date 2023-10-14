@@ -39,8 +39,8 @@ public class MagicInfoCommunicatorTest {
 	void setUp() throws Exception {
 		magicInfoCommunicator = new MagicInfoCommunicator();
 		magicInfoCommunicator.setHost("misstaging.com");
-		magicInfoCommunicator.setLogin("");
-		magicInfoCommunicator.setPassword("");
+		magicInfoCommunicator.setLogin("aviadmin");
+		magicInfoCommunicator.setPassword("AVISPL@Team");
 		magicInfoCommunicator.setPort(7001);
 		magicInfoCommunicator.init();
 		magicInfoCommunicator.connect();
@@ -137,7 +137,7 @@ public class MagicInfoCommunicatorTest {
 	@Test
 	void testFiltering() throws Exception {
 		magicInfoCommunicator.setFilterDeviceType("");
-		magicInfoCommunicator.setFilterSource("MagicInfo-Lite/S");
+		magicInfoCommunicator.setFilterSource("MagicInfo-Lite/S,ss");
 		magicInfoCommunicator.setFilterFunction("");
 		magicInfoCommunicator.getMultipleStatistics();
 		magicInfoCommunicator.retrieveMultipleStatistics();
@@ -431,6 +431,35 @@ public class MagicInfoCommunicatorTest {
 		List<AggregatedDevice> aggregatedDeviceList = magicInfoCommunicator.retrieveMultipleStatistics();
 		Optional<AdvancedControllableProperty> advancedControllableProperty = aggregatedDeviceList.get(1).getControllableProperties().stream().filter(item ->
 				property.equals(item.getName())).findFirst();
+		Assert.assertEquals(value,advancedControllableProperty.get().getValue());
+	}
+
+	/**
+	 * Test case for controlling a property using MagicInfo Communicator.
+	 *
+	 * @throws Exception If an exception occurs during the test.
+	 */
+	@Test
+	void testSwitchAutoSourceSwitching() throws Exception {
+		magicInfoCommunicator.getMultipleStatistics();
+		magicInfoCommunicator.retrieveMultipleStatistics();
+		Thread.sleep(30000);
+		magicInfoCommunicator.retrieveMultipleStatistics();
+		ControllableProperty controllableProperty = new ControllableProperty();
+		String property = MagicInfoConstant.ADVANCED_SETTING.concat("AutoSourceSwitching");
+		String value = "1";
+		String deviceId = "a0-d0-5b-b2-e8-91";
+		controllableProperty.setProperty(property);
+		controllableProperty.setValue(value);
+		controllableProperty.setDeviceId(deviceId);
+		magicInfoCommunicator.controlProperty(controllableProperty);
+
+		List<AggregatedDevice> aggregatedDeviceList = magicInfoCommunicator.retrieveMultipleStatistics();
+		Optional<AdvancedControllableProperty> advancedControllableProperty = aggregatedDeviceList.stream()
+				.filter(item -> deviceId.equals(item.getDeviceId()))
+				.findFirst().get()
+				.getControllableProperties().stream().filter(item ->
+						property.equals(item.getName())).findFirst();
 		Assert.assertEquals(value,advancedControllableProperty.get().getValue());
 	}
 }

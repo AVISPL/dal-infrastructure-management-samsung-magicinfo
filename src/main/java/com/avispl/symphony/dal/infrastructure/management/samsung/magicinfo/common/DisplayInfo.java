@@ -33,7 +33,7 @@ public enum DisplayInfo {
 	COLOR("Color(%)", MagicInfoConstant.PICTURE_VIDEO, "pvColor",false),
 	TINT("Tint(G/R)(%)", MagicInfoConstant.PICTURE_VIDEO, "pvTint",false),
 	COLOR_TONE("ColorTone", MagicInfoConstant.PICTURE_VIDEO, "pvColortone",false),
-	COLOR_TEMPERATURE("ColorTemperature", MagicInfoConstant.PICTURE_VIDEO, "pvColorTemperature",false),
+	COLOR_TEMPERATURE("ColorTemperature(K)", MagicInfoConstant.PICTURE_VIDEO, "pvColorTemperature",false),
 	PICTURE_SIZE("PictureSize", MagicInfoConstant.PICTURE_VIDEO, "pvSize",false),
 	DIGITAL_CLEAN_VIEW("DigitalCleanView", MagicInfoConstant.PICTURE_VIDEO, "pvDigitalnr",false),
 	FILM_MODE("FilmMode", MagicInfoConstant.PICTURE_VIDEO, "pvFilmmode",false),

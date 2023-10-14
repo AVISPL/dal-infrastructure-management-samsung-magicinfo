@@ -16,7 +16,7 @@ models:
         DeviceType: get("generalConf")?.get("deviceType")
         DeviceTypeVersion: get("generalConf")?.get("deviceTypeVersion")
         MapLocation: get("generalConf")?.get("mapLocation")
-        LastConnectionTime: get("generalConf")?.get("lastConnectionTime")
+        LastStatusChange: get("generalConf")?.get("lastConnectionTime")
 
         FirmwareVersion: get("generalConf")?.get("firmwareVersion")
         OSImageVersion: get("generalConf")?.get("osImageVersion")
@@ -58,7 +58,7 @@ models:
         Color(%): get("pvColor")
         Tint(G/R)(%): get("pvTint")
         ColorTone: get("pvColortone")
-        ColorTemperature: get("pvColorTemperature")
+        ColorTemperature(K): get("pvColorTemperature")
         PictureSize: get("pvSize")
         DigitalCleanView: get("pvDigitalnr")
         FilmMode: get("pvFilmmode")

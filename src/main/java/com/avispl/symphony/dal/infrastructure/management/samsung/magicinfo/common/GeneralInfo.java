@@ -19,7 +19,7 @@ public enum GeneralInfo {
 	DEVICE_TYPE("DeviceType"),
 	DEVICE_TYPE_VERSION("DeviceTypeVersion"),
 	MAP_LOCATION("MapLocation"),
-	LAST_CONNECTION_TIME("LastConnectionTime"),
+	LAST_CONNECTION_TIME("LastStatusChange"),
 	FIRMWARE_VERSION("FirmwareVersion"),
 	OS_IMAGE_VERSION("OSImageVersion"),
 	PLAYER_VERSION("PlayerVersion"),

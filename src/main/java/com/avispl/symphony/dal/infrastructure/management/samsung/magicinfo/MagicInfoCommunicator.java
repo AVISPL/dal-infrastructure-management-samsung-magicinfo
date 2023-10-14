@@ -73,7 +73,6 @@ import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.commo
 import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.screen.RepeatModeEnum;
 import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.screen.TimerEnum;
 import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.sound.SoundModeEnum;
-import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.dto.AutoSourceSwitching;
 import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.dto.IntervalTimer;
 import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.dto.Maintenance;
 import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.dto.PixelShift;
@@ -879,12 +878,14 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 						break;
 					case AUTO_SOURCE_SWITCHING:
 						if (cachedValue != null && cachedValue.has(MagicInfoConstant.AUTO_SOURCE) && checkChildNodeAutoSourceSwitching(cachedValue.get(MagicInfoConstant.AUTO_SOURCE))) {
-							String restorePrimarySource = cachedValue.get(MagicInfoConstant.AUTO_SOURCE).get(RESTORE_PRIMARY_SOURCE.getFieldName()).asText();
-							String primarySource = cachedValue.get(MagicInfoConstant.AUTO_SOURCE).get(PRIMARY_SOURCE.getFieldName()).asText();
-							String secondSource = cachedValue.get(MagicInfoConstant.AUTO_SOURCE).get(SECONDARY_SOURCE.getFieldName()).asText();
-							AutoSourceSwitching autoSourceSwitching = new AutoSourceSwitching(true, false, false, false, false, value, restorePrimarySource, primarySource, secondSource);
+							ObjectNode autoSourceSwitching = (ObjectNode) cachedValue.get(MagicInfoConstant.AUTO_SOURCE);
+							autoSourceSwitching.put(MagicInfoConstant.AUTO_SOURCE, value);
+							autoSourceSwitching.put(MagicInfoConstant.AUTO_SOURCE_CHANGE, true);
 							sendGroupControl(propertyItem, deviceId, value, MagicInfoConstant.AUTO_SOURCE, autoSourceSwitching);
 							if (!MagicInfoConstant.ZERO.equals(value)) {
+								String restorePrimarySource = cachedValue.get(MagicInfoConstant.AUTO_SOURCE).get(RESTORE_PRIMARY_SOURCE.getFieldName()).asText();
+								String primarySource = cachedValue.get(MagicInfoConstant.AUTO_SOURCE).get(PRIMARY_SOURCE.getFieldName()).asText();
+								String secondSource = cachedValue.get(MagicInfoConstant.AUTO_SOURCE).get(SECONDARY_SOURCE.getFieldName()).asText();
 								//turn on
 								stats.put(MagicInfoConstant.ADVANCED_SETTING.concat(RESTORE_PRIMARY_SOURCE.getName()), MagicInfoConstant.ZERO.equals(restorePrimarySource) ? "Off" : "On");
 								stats.put(MagicInfoConstant.ADVANCED_SETTING.concat(PRIMARY_SOURCE.getName()), EnumTypeHandler.getNameByValue(SourceEnum.class, primarySource));
@@ -1299,11 +1300,13 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 		if (StringUtils.isNotNullOrEmpty(filterSource)) {
 			sourceValue = Arrays.stream(filterSource.split(MagicInfoConstant.COMMA)).map(String::trim)
 					.map(item -> EnumTypeHandler.getValueByName(SourceEnum.class, item))
+					.filter(item -> !item.equals(MagicInfoConstant.NONE))
 					.collect(Collectors.toList());
 		}
 		if (StringUtils.isNotNullOrEmpty(filterFunction)) {
 			functionValue = Arrays.stream(filterFunction.split(MagicInfoConstant.COMMA)).map(String::trim)
 					.map(item -> EnumTypeHandler.getValueByName(FunctionFilterEnum.class, item))
+					.filter(item -> !item.equals(MagicInfoConstant.NONE))
 					.collect(Collectors.toList());
 		}
 		ObjectNode body = objectMapper.createObjectNode();
@@ -1926,8 +1929,8 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 	 * @throws IllegalArgumentException If the device is disconnected or the control operation encounters an error.
 	 */
 	private void sendPowerCommand(String id, String value) {
-		if (!checkConnectionDevice(id)) {
-			throw new IllegalArgumentException("The device is disconnected.");
+		if (MagicInfoConstant.ZERO.equals(value) && !checkConnectionDevice(id)) {
+				throw new IllegalArgumentException("The device is disconnected.");
 		}
 		try {
 			ObjectNode body = createArrayIdsNode(id, MagicInfoConstant.DEVICE_IDS);
