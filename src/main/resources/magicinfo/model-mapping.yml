@@ -11,7 +11,7 @@ models:
       properties:
         Power: get("generalConf")?.get("power")
         MACAddress: get("generalConf")?.get("macAddress")
-        IP: get("generalConf")?.get("ipAddress")
+        IPAddress: get("generalConf")?.get("ipAddress")
         Location: get("generalConf")?.get("location")
         DeviceType: get("generalConf")?.get("deviceType")
         DeviceTypeVersion: get("generalConf")?.get("deviceTypeVersion")
@@ -44,11 +44,11 @@ models:
         WebBrowserZoom: get("webBrowserUrl")?.get("webBrowserZoom")
         WebBrowserHomePage: get("webBrowserUrl")?.get("webBrowserHomepage")
         WebBrowserPageURL: get("webBrowserUrl")?.get("webBrowserPageurl")
-        Volume: get("basicVolume")
+        Volume(%): get("basicVolume")
         Mute: get("basicMute")
         PanelOnTime(hour): get("diagnosisPanelOnTime")
 
-        Temperature(C): get("diagnosisMonitorTemperature")
+        Temperature: get("diagnosisMonitorTemperature")
         TemperatureControl(C): get("diagnosisAlarmTemperature")
 
         LampControl(%): get("mntManual")

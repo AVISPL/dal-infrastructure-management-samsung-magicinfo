@@ -18,7 +18,6 @@ public class MagicInfoConstant {
 	public static final String OFF = "Off";
 	public static final String ON = "On";
 	public static final String DISPLAY_CONTROLS_GROUP = "DisplayControls#";
-	public static final String TEMPERATURE_GROUP = "FanAndTemperature#";
 	public static final String PICTURE_VIDEO = "Picture(VIDEO)#";
 	public static final String SOUND = "Sound#";
 	public static final String ADVANCED_SETTING = "AdvancedSetting#";
@@ -63,7 +62,10 @@ public class MagicInfoConstant {
 	public static final String TIMER = "Timer";
 	public static final String WEB_BROWSER_HOME_PAGE = "WebBrowserHomePage";
 	public static final String AUTO_SOURCE = "autoSourceSwitching";
-	public static final String AUTO_SOURCE_CHANGE = "autoSourceChanged";
+	public static final String AUTO_SOURCE_CHANGED = "autoSourceChanged";
+	public static final String WEB_BROWSER_CHANGED = "webBrowserChanged";
+	public static final String AUTO_CHANGED = "mntAutoChanged";
+	public static final String PIXEL_SHIFT_CHANGED = "pixelShiftChanged";
 	public static final String MNT_AUTO = "mntAuto";
 	public static final String MNT_PIXEL_SHIFT = "mntPixelShift";
 	public static final String MNT_SAFETY_SCREEN_TIMER = "mntSafetyScreenTimer";

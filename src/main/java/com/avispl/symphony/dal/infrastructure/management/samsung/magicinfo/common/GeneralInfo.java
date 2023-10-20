@@ -14,7 +14,7 @@ package com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.comm
  */
 public enum GeneralInfo {
 	MAC_ADDRESS("MACAddress"),
-	IP("IP"),
+	IP("IPAddress"),
 	LOCATION("Location"),
 	DEVICE_TYPE("DeviceType"),
 	DEVICE_TYPE_VERSION("DeviceTypeVersion"),
