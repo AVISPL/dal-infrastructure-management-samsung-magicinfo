@@ -73,12 +73,8 @@ import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.commo
 import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.screen.RepeatModeEnum;
 import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.screen.TimerEnum;
 import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.common.sound.SoundModeEnum;
-import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.dto.AutoSourceSwitching;
 import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.dto.IntervalTimer;
-import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.dto.Maintenance;
-import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.dto.PixelShift;
 import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.dto.RepeatTimer;
-import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.dto.WebBrowserUrl;
 import com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.statistics.DynamicStatisticsDefinition;
 import com.avispl.symphony.dal.util.StringUtils;
 
@@ -107,7 +103,7 @@ import com.avispl.symphony.dal.util.StringUtils;
  * <li> - DeviceTypeVersion</li>
  * <li> - DiskSpaceUsage</li>
  * <li> - FirmwareVersion</li>
- * <li> - IP</li>
+ * <li> - IPAddress</li>
  * <li> - LastConnectionTime</li>
  * <li> - Location</li>
  * <li> - MACAddress</li>
@@ -135,6 +131,7 @@ import com.avispl.symphony.dal.util.StringUtils;
  * <li> - RemoteConfiguration</li>
  * <li> - RestorePrimarySource</li>
  * <li> - SecondarySource</li>
+ * <li> - TemperatureControl(C)</li>
  * </ul>
  *
  * DisplayControls Group:
@@ -144,15 +141,10 @@ import com.avispl.symphony.dal.util.StringUtils;
  * <li> - Power</li>
  * <li> - Restart</li>
  * <li> - Source</li>
- * <li> - Volume</li>
+ * <li> - Volume(%)</li>
  * <li> - WebBrowserHomePage</li>
  * <li> - WebBrowserRefreshInterval</li>
  * <li> - WebBrowserZoom</li>
- * </ul>
- *
- * FanAndTemperature Group:
- * <ul>
- * <li> - TemperatureControl(C)</li>
  * </ul>
  *
  * Maintenance Group:
@@ -658,96 +650,89 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 					case COLOR:
 					case TINT:
 						value = checkValidInput(0, 100, value);
-						sendControlRequest(propertyItem, deviceId, value);
+						sendControlRequest(propertyItem, deviceId, value, value);
 						break;
 					case TEMPERATURE_CONTROL:
 						value = checkValidInput(75, 124, value);
-						sendControlRequest(propertyItem, deviceId, value);
+						sendControlRequest(propertyItem, deviceId, value, value);
 						break;
 					case COLOR_TONE:
 						requestValue = EnumTypeHandler.getValueByName(ColorToneEnum.class, value);
-						sendControlRequest(propertyItem, deviceId, requestValue);
+						sendControlRequest(propertyItem, deviceId, requestValue, value);
 						break;
 					case COLOR_TEMPERATURE:
 						requestValue = EnumTypeHandler.getValueByName(ColorTemperatureEnum.class, value);
-						sendControlRequest(propertyItem, deviceId, requestValue);
+						sendControlRequest(propertyItem, deviceId, requestValue, value);
 						break;
 					case PICTURE_SIZE:
 						requestValue = EnumTypeHandler.getValueByName(PictureSizeEnum.class, value);
-						sendControlRequest(propertyItem, deviceId, requestValue);
+						sendControlRequest(propertyItem, deviceId, requestValue, value);
 						break;
 					case DIGITAL_CLEAN_VIEW:
 						requestValue = EnumTypeHandler.getValueByName(DigitalCleanViewEnum.class, value);
-						sendControlRequest(propertyItem, deviceId, requestValue);
+						sendControlRequest(propertyItem, deviceId, requestValue, value);
 						break;
 					case FILM_MODE:
 						requestValue = EnumTypeHandler.getValueByName(FilmModeEnum.class, value);
-						sendControlRequest(propertyItem, deviceId, requestValue);
+						sendControlRequest(propertyItem, deviceId, requestValue, value);
 						break;
 					case HDMI_BLACK_LEVEL:
 						requestValue = EnumTypeHandler.getValueByName(HDMIBlackLevelEnum.class, value);
-						sendControlRequest(propertyItem, deviceId, requestValue);
+						sendControlRequest(propertyItem, deviceId, requestValue, value);
 						break;
 					case SOUND_MODE:
 						requestValue = EnumTypeHandler.getValueByName(SoundModeEnum.class, value);
-						sendControlRequest(propertyItem, deviceId, requestValue);
+						sendControlRequest(propertyItem, deviceId, requestValue, value);
 						break;
 					case MUTE:
 					case PICTURE_ENHANCER:
 					case REMOTE_CONFIGURATION:
 					case MAX_POWER_SAVING:
 					case AUTO_POWER_ON:
-						sendControlRequest(propertyItem, deviceId, value);
+						sendControlRequest(propertyItem, deviceId, value, getOnOffStatus(value));
 						break;
 					case DISPLAY_PANEL:
 						requestValue = MagicInfoConstant.NUMBER_ONE.equals(value) ? MagicInfoConstant.ZERO : MagicInfoConstant.NUMBER_ONE;
-						sendControlRequest(propertyItem, deviceId, requestValue);
+						sendControlRequest(propertyItem, deviceId, requestValue, MagicInfoConstant.NUMBER_ONE.equals(value) ? MagicInfoConstant.OFF : MagicInfoConstant.ON);
 						break;
 					case WEB_BROWSER_ZOOM:
-						String webBrowserZoom;
-						String webBrowserInterval;
-						String webBrowserHomepage;
-						String webBrowserPageUrl;
-						WebBrowserUrl webBrowserUrl;
+						ObjectNode webBrowserUrl;
 						if (cachedValue != null && cachedValue.has(MagicInfoConstant.WEB_BROWSER_URL) && checkChildNodeWebBrowser(cachedValue.get(MagicInfoConstant.WEB_BROWSER_URL))) {
-							webBrowserInterval = cachedValue.get(MagicInfoConstant.WEB_BROWSER_URL).get(WEB_BROWSER_INTERVAL.getFieldName()).asText();
-							webBrowserHomepage = cachedValue.get(MagicInfoConstant.WEB_BROWSER_URL).get(WEB_BROWSER_HOME_PAGE.getFieldName()).asText();
-							webBrowserPageUrl = cachedValue.get(MagicInfoConstant.WEB_BROWSER_URL).get(WEB_BROWSER_PAGE_URL.getFieldName()).asText();
 							requestValue = EnumTypeHandler.getValueByName(WebBrowserZoomEnum.class, value);
-							webBrowserUrl = new WebBrowserUrl(false, false, false, false, webBrowserInterval, requestValue, webBrowserHomepage, webBrowserPageUrl, true);
-							sendGroupControl(propertyItem, deviceId, requestValue, MagicInfoConstant.WEB_BROWSER_URL, webBrowserUrl);
+							webBrowserUrl = (ObjectNode) cachedValue.get(MagicInfoConstant.WEB_BROWSER_URL);
+							webBrowserUrl.put(WEB_BROWSER_ZOOM.getFieldName(), requestValue);
+							webBrowserUrl.put(MagicInfoConstant.WEB_BROWSER_CHANGED, true);
+							sendGroupControl(propertyItem, deviceId, requestValue, value, MagicInfoConstant.WEB_BROWSER_URL, webBrowserUrl);
 						}
 						break;
 					case WEB_BROWSER_INTERVAL:
 						if (cachedValue != null && cachedValue.has(MagicInfoConstant.WEB_BROWSER_URL) && checkChildNodeWebBrowser(cachedValue.get(MagicInfoConstant.WEB_BROWSER_URL))) {
-							webBrowserZoom = cachedValue.get(MagicInfoConstant.WEB_BROWSER_URL).get(WEB_BROWSER_ZOOM.getFieldName()).asText();
-							webBrowserHomepage = cachedValue.get(MagicInfoConstant.WEB_BROWSER_URL).get(WEB_BROWSER_HOME_PAGE.getFieldName()).asText();
-							webBrowserPageUrl = cachedValue.get(MagicInfoConstant.WEB_BROWSER_URL).get(WEB_BROWSER_PAGE_URL.getFieldName()).asText();
 							requestValue = EnumTypeHandler.getValueByName(WebBrowserIntervalEnum.class, value);
-							webBrowserUrl = new WebBrowserUrl(false, false, false, false, requestValue, webBrowserZoom, webBrowserHomepage, webBrowserPageUrl, true);
-							sendGroupControl(propertyItem, deviceId, requestValue, MagicInfoConstant.WEB_BROWSER_URL, webBrowserUrl);
+							webBrowserUrl = (ObjectNode) cachedValue.get(MagicInfoConstant.WEB_BROWSER_URL);
+							webBrowserUrl.put(WEB_BROWSER_INTERVAL.getFieldName(), requestValue);
+							webBrowserUrl.put(MagicInfoConstant.WEB_BROWSER_CHANGED, true);
+							sendGroupControl(propertyItem, deviceId, requestValue, value, MagicInfoConstant.WEB_BROWSER_URL, webBrowserUrl);
 						}
 						break;
 					case WEB_BROWSER_PAGE_URL:
 						if (cachedValue != null && cachedValue.has(MagicInfoConstant.WEB_BROWSER_URL) && checkChildNodeWebBrowser(cachedValue.get(MagicInfoConstant.WEB_BROWSER_URL))) {
-							webBrowserInterval = cachedValue.get(MagicInfoConstant.WEB_BROWSER_URL).get(WEB_BROWSER_INTERVAL.getFieldName()).asText();
-							webBrowserZoom = cachedValue.get(MagicInfoConstant.WEB_BROWSER_URL).get(WEB_BROWSER_ZOOM.getFieldName()).asText();
-							webBrowserHomepage = cachedValue.get(MagicInfoConstant.WEB_BROWSER_URL).get(WEB_BROWSER_HOME_PAGE.getFieldName()).asText();
-							webBrowserUrl = new WebBrowserUrl(false, false, false, false, webBrowserInterval, webBrowserZoom, webBrowserHomepage, value, true);
-							sendGroupControl(propertyItem, deviceId, value, MagicInfoConstant.WEB_BROWSER_URL, webBrowserUrl);
+							webBrowserUrl = (ObjectNode) cachedValue.get(MagicInfoConstant.WEB_BROWSER_URL);
+							webBrowserUrl.put(WEB_BROWSER_PAGE_URL.getFieldName(), value);
+							webBrowserUrl.put(MagicInfoConstant.WEB_BROWSER_CHANGED, true);
+							sendGroupControl(propertyItem, deviceId, value, value, MagicInfoConstant.WEB_BROWSER_URL, webBrowserUrl);
 						}
 						break;
 					case WEB_BROWSER_HOME_PAGE:
 						if (cachedValue != null && cachedValue.has(MagicInfoConstant.WEB_BROWSER_URL) && checkChildNodeWebBrowser(cachedValue.get(MagicInfoConstant.WEB_BROWSER_URL))) {
-							webBrowserInterval = cachedValue.get(MagicInfoConstant.WEB_BROWSER_URL).get(WEB_BROWSER_INTERVAL.getFieldName()).asText();
-							webBrowserZoom = cachedValue.get(MagicInfoConstant.WEB_BROWSER_URL).get(WEB_BROWSER_ZOOM.getFieldName()).asText();
-							webBrowserPageUrl = cachedValue.get(MagicInfoConstant.WEB_BROWSER_URL).get(WEB_BROWSER_PAGE_URL.getFieldName()).asText();
-							webBrowserUrl = new WebBrowserUrl(false, false, false, false, webBrowserInterval, webBrowserZoom, value, webBrowserPageUrl, true);
-							sendGroupControl(propertyItem, deviceId, value, MagicInfoConstant.WEB_BROWSER_URL, webBrowserUrl);
+							String webBrowserPageUrl = cachedValue.get(MagicInfoConstant.WEB_BROWSER_URL).get(WEB_BROWSER_PAGE_URL.getFieldName()).asText();
+							webBrowserUrl = (ObjectNode) cachedValue.get(MagicInfoConstant.WEB_BROWSER_URL);
+							webBrowserUrl.put(WEB_BROWSER_HOME_PAGE.getFieldName(), value);
+							webBrowserUrl.put(MagicInfoConstant.WEB_BROWSER_CHANGED, true);
+							sendGroupControl(propertyItem, deviceId, value, MagicInfoConstant.ZERO.equals(value) ? MagicInfoConstant.SAMSUNG_DISPLAY : MagicInfoConstant.CUSTOM, MagicInfoConstant.WEB_BROWSER_URL, webBrowserUrl);
 							if (MagicInfoConstant.ZERO.equals(value)) {
 								removeValueForTheControllableProperty(stats, advancedControllableProperties, MagicInfoConstant.DISPLAY_CONTROLS_GROUP.concat(WEB_BROWSER_PAGE_URL.getName()));
 							} else {
-								addValueForTheControllableProperty(stats, advancedControllableProperties,
+								addAdvanceControlProperties(advancedControllableProperties, stats,
 										createText(MagicInfoConstant.DISPLAY_CONTROLS_GROUP.concat(WEB_BROWSER_PAGE_URL.getName()), webBrowserPageUrl),
 										webBrowserPageUrl);
 							}
@@ -758,15 +743,16 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 						String minTime;
 						String maxValue;
 						String minValue;
-						Maintenance maintenance;
-						String mntAutoIsEnable;
+						ObjectNode maintenance;
 						if (cachedValue != null && cachedValue.has(MagicInfoConstant.MNT_AUTO) && checkChildNodeMaintenance(cachedValue.get(MagicInfoConstant.MNT_AUTO))) {
 							maxTime = cachedValue.get(MagicInfoConstant.MNT_AUTO).get(MAX_TIME_HOUR.getFieldName()).asText();
 							minTime = cachedValue.get(MagicInfoConstant.MNT_AUTO).get(MIN_TIME_HOUR.getFieldName()).asText();
 							maxValue = cachedValue.get(MagicInfoConstant.MNT_AUTO).get(MAX_VALUE.getFieldName()).asText();
 							minValue = cachedValue.get(MagicInfoConstant.MNT_AUTO).get(MIN_VALUE.getFieldName()).asText();
-							maintenance = new Maintenance(true, false, false, false, false, value, maxTime, maxValue, minTime, minValue);
-							sendGroupControl(propertyItem, deviceId, value, MagicInfoConstant.MNT_AUTO, maintenance);
+							maintenance = (ObjectNode) cachedValue.get(MagicInfoConstant.MNT_AUTO);
+							maintenance.put(SCREEN_LAMP_SCHEDULE.getFieldName(), value);
+							maintenance.put(MagicInfoConstant.AUTO_CHANGED, true);
+							sendGroupControl(propertyItem, deviceId, value, getOnOffStatus(value), MagicInfoConstant.MNT_AUTO, maintenance);
 							if (MagicInfoConstant.NUMBER_ONE.equals(value)) {
 								//turn on
 								stats.remove(MagicInfoConstant.MAINTENANCE_GROUP.concat(MagicInfoConstant.MAX_TIME));
@@ -805,88 +791,78 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 						break;
 					case MAX_VALUE:
 						if (cachedValue != null && cachedValue.has(MagicInfoConstant.MNT_AUTO) && checkChildNodeMaintenance(cachedValue.get(MagicInfoConstant.MNT_AUTO))) {
-							maxTime = cachedValue.get(MagicInfoConstant.MNT_AUTO).get(MAX_TIME_HOUR.getFieldName()).asText();
-							minTime = cachedValue.get(MagicInfoConstant.MNT_AUTO).get(MIN_TIME_HOUR.getFieldName()).asText();
-							mntAutoIsEnable = cachedValue.get(MagicInfoConstant.MNT_AUTO).get(SCREEN_LAMP_SCHEDULE.getFieldName()).asText();
-							minValue = cachedValue.get(MagicInfoConstant.MNT_AUTO).get(MIN_VALUE.getFieldName()).asText();
 							value = checkValidInput(0, 100, value);
-							maintenance = new Maintenance(true, false, false, false, false, mntAutoIsEnable, maxTime, value, minTime, minValue);
-							sendGroupControl(propertyItem, deviceId, value, MagicInfoConstant.MNT_AUTO, maintenance);
+							maintenance = (ObjectNode) cachedValue.get(MagicInfoConstant.MNT_AUTO);
+							maintenance.put(MAX_VALUE.getFieldName(), value);
+							maintenance.put(MagicInfoConstant.AUTO_CHANGED, true);
+							sendGroupControl(propertyItem, deviceId, value, value, MagicInfoConstant.MNT_AUTO, maintenance);
 						}
 						break;
 					case MIN_VALUE:
 						if (cachedValue != null && cachedValue.has(MagicInfoConstant.MNT_AUTO) && checkChildNodeMaintenance(cachedValue.get(MagicInfoConstant.MNT_AUTO))) {
-							maxTime = cachedValue.get(MagicInfoConstant.MNT_AUTO).get(MAX_TIME_HOUR.getFieldName()).asText();
-							minTime = cachedValue.get(MagicInfoConstant.MNT_AUTO).get(MIN_TIME_HOUR.getFieldName()).asText();
-							mntAutoIsEnable = cachedValue.get(MagicInfoConstant.MNT_AUTO).get(SCREEN_LAMP_SCHEDULE.getFieldName()).asText();
-							maxValue = cachedValue.get(MagicInfoConstant.MNT_AUTO).get(MAX_VALUE.getFieldName()).asText();
 							value = checkValidInput(0, 100, value);
-							maintenance = new Maintenance(true, false, false, false, false, mntAutoIsEnable, maxTime, maxValue, minTime, value);
-							sendGroupControl(propertyItem, deviceId, value, MagicInfoConstant.MNT_AUTO, maintenance);
+							maintenance = (ObjectNode) cachedValue.get(MagicInfoConstant.MNT_AUTO);
+							maintenance.put(MIN_VALUE.getFieldName(), value);
+							maintenance.put(MagicInfoConstant.AUTO_CHANGED, true);
+							sendGroupControl(propertyItem, deviceId, value, value, MagicInfoConstant.MNT_AUTO, maintenance);
 						}
 						break;
 					case MAX_TIME_MINUTE:
 						if (cachedValue != null && cachedValue.has(MagicInfoConstant.MNT_AUTO) && checkChildNodeMaintenance(cachedValue.get(MagicInfoConstant.MNT_AUTO))) {
 							maxTime = cachedValue.get(MagicInfoConstant.MNT_AUTO).get(MAX_TIME_HOUR.getFieldName()).asText();
-							minTime = cachedValue.get(MagicInfoConstant.MNT_AUTO).get(MIN_TIME_HOUR.getFieldName()).asText();
-							maxValue = cachedValue.get(MagicInfoConstant.MNT_AUTO).get(MAX_VALUE.getFieldName()).asText();
-							minValue = cachedValue.get(MagicInfoConstant.MNT_AUTO).get(MIN_VALUE.getFieldName()).asText();
-							mntAutoIsEnable = cachedValue.get(MagicInfoConstant.MNT_AUTO).get(SCREEN_LAMP_SCHEDULE.getFieldName()).asText();
 							String hour = convert12HourTo24Hour(maxTime).split(MagicInfoConstant.COLON)[0];
 							requestValue = convertTo12HourFormat(hour, value);
-							maintenance = new Maintenance(true, false, false, false, false, mntAutoIsEnable, requestValue, maxValue, minTime, minValue);
-							sendGroupControl(propertyItem, deviceId, requestValue, MagicInfoConstant.MNT_AUTO, maintenance);
+							maintenance = (ObjectNode) cachedValue.get(MagicInfoConstant.MNT_AUTO);
+							maintenance.put(MAX_TIME_MINUTE.getFieldName(), requestValue);
+							maintenance.put(MagicInfoConstant.AUTO_CHANGED, true);
+							sendGroupControl(propertyItem, deviceId, requestValue, value, MagicInfoConstant.MNT_AUTO, maintenance);
 						}
 						break;
 					case MAX_TIME_HOUR:
 						if (cachedValue != null && cachedValue.has(MagicInfoConstant.MNT_AUTO) && checkChildNodeMaintenance(cachedValue.get(MagicInfoConstant.MNT_AUTO))) {
 							maxTime = cachedValue.get(MagicInfoConstant.MNT_AUTO).get(MAX_TIME_HOUR.getFieldName()).asText();
-							minTime = cachedValue.get(MagicInfoConstant.MNT_AUTO).get(MIN_TIME_HOUR.getFieldName()).asText();
-							maxValue = cachedValue.get(MagicInfoConstant.MNT_AUTO).get(MAX_VALUE.getFieldName()).asText();
-							minValue = cachedValue.get(MagicInfoConstant.MNT_AUTO).get(MIN_VALUE.getFieldName()).asText();
-							mntAutoIsEnable = cachedValue.get(MagicInfoConstant.MNT_AUTO).get(SCREEN_LAMP_SCHEDULE.getFieldName()).asText();
 							String minute = convert12HourTo24Hour(maxTime).split(MagicInfoConstant.COLON)[1];
 							requestValue = convertTo12HourFormat(value, minute);
-							maintenance = new Maintenance(true, false, false, false, false, mntAutoIsEnable, requestValue, maxValue, minTime, minValue);
-							sendGroupControl(propertyItem, deviceId, requestValue, MagicInfoConstant.MNT_AUTO, maintenance);
+							maintenance = (ObjectNode) cachedValue.get(MagicInfoConstant.MNT_AUTO);
+							maintenance.put(MAX_TIME_HOUR.getFieldName(), requestValue);
+							maintenance.put(MagicInfoConstant.AUTO_CHANGED, true);
+							sendGroupControl(propertyItem, deviceId, requestValue, value, MagicInfoConstant.MNT_AUTO, maintenance);
 						}
 						break;
 					case MIN_TIME_MINUTE:
 						if (cachedValue != null && cachedValue.has(MagicInfoConstant.MNT_AUTO) && checkChildNodeMaintenance(cachedValue.get(MagicInfoConstant.MNT_AUTO))) {
-							maxTime = cachedValue.get(MagicInfoConstant.MNT_AUTO).get(MAX_TIME_HOUR.getFieldName()).asText();
 							minTime = cachedValue.get(MagicInfoConstant.MNT_AUTO).get(MIN_TIME_HOUR.getFieldName()).asText();
-							maxValue = cachedValue.get(MagicInfoConstant.MNT_AUTO).get(MAX_VALUE.getFieldName()).asText();
-							minValue = cachedValue.get(MagicInfoConstant.MNT_AUTO).get(MIN_VALUE.getFieldName()).asText();
-							mntAutoIsEnable = cachedValue.get(MagicInfoConstant.MNT_AUTO).get(SCREEN_LAMP_SCHEDULE.getFieldName()).asText();
 							String hour = convert12HourTo24Hour(minTime).split(MagicInfoConstant.COLON)[0];
 							requestValue = convertTo12HourFormat(hour, value);
-							maintenance = new Maintenance(true, false, false, false, false, mntAutoIsEnable, maxTime, maxValue, requestValue, minValue);
-							sendGroupControl(propertyItem, deviceId, requestValue, MagicInfoConstant.MNT_AUTO, maintenance);
+							maintenance = (ObjectNode) cachedValue.get(MagicInfoConstant.MNT_AUTO);
+							maintenance.put(MIN_TIME_MINUTE.getFieldName(), requestValue);
+							maintenance.put(MagicInfoConstant.AUTO_CHANGED, true);
+							sendGroupControl(propertyItem, deviceId, requestValue, value, MagicInfoConstant.MNT_AUTO, maintenance);
 						}
 						break;
 					case MIN_TIME_HOUR:
 						if (cachedValue != null && cachedValue.has(MagicInfoConstant.MNT_AUTO) && checkChildNodeMaintenance(cachedValue.get(MagicInfoConstant.MNT_AUTO))) {
-							maxTime = cachedValue.get(MagicInfoConstant.MNT_AUTO).get(MAX_TIME_HOUR.getFieldName()).asText();
 							minTime = cachedValue.get(MagicInfoConstant.MNT_AUTO).get(MIN_TIME_HOUR.getFieldName()).asText();
-							maxValue = cachedValue.get(MagicInfoConstant.MNT_AUTO).get(MAX_VALUE.getFieldName()).asText();
-							minValue = cachedValue.get(MagicInfoConstant.MNT_AUTO).get(MIN_VALUE.getFieldName()).asText();
-							mntAutoIsEnable = cachedValue.get(MagicInfoConstant.MNT_AUTO).get(SCREEN_LAMP_SCHEDULE.getFieldName()).asText();
 							String minute = convert12HourTo24Hour(minTime).split(MagicInfoConstant.COLON)[1];
 							requestValue = convertTo12HourFormat(value, minute);
-							maintenance = new Maintenance(true, false, false, false, false, mntAutoIsEnable, maxTime, maxValue, requestValue, minValue);
-							sendGroupControl(propertyItem, deviceId, requestValue, MagicInfoConstant.MNT_AUTO, maintenance);
+							maintenance = (ObjectNode) cachedValue.get(MagicInfoConstant.MNT_AUTO);
+							maintenance.put(MIN_TIME_HOUR.getFieldName(), requestValue);
+							maintenance.put(MagicInfoConstant.AUTO_CHANGED, true);
+							sendGroupControl(propertyItem, deviceId, requestValue, value, MagicInfoConstant.MNT_AUTO, maintenance);
 						}
 						break;
 					case AUTO_SOURCE_SWITCHING:
 						if (cachedValue != null && cachedValue.has(MagicInfoConstant.AUTO_SOURCE) && checkChildNodeAutoSourceSwitching(cachedValue.get(MagicInfoConstant.AUTO_SOURCE))) {
-							String restorePrimarySource = cachedValue.get(MagicInfoConstant.AUTO_SOURCE).get(RESTORE_PRIMARY_SOURCE.getFieldName()).asText();
-							String primarySource = cachedValue.get(MagicInfoConstant.AUTO_SOURCE).get(PRIMARY_SOURCE.getFieldName()).asText();
-							String secondSource = cachedValue.get(MagicInfoConstant.AUTO_SOURCE).get(SECONDARY_SOURCE.getFieldName()).asText();
-							AutoSourceSwitching autoSourceSwitching = new AutoSourceSwitching(true, false, false, false, false, value, restorePrimarySource, primarySource, secondSource);
-							sendGroupControl(propertyItem, deviceId, value, MagicInfoConstant.AUTO_SOURCE, autoSourceSwitching);
+							ObjectNode autoSourceSwitching = (ObjectNode) cachedValue.get(MagicInfoConstant.AUTO_SOURCE);
+							autoSourceSwitching.put(MagicInfoConstant.AUTO_SOURCE, value);
+							autoSourceSwitching.put(MagicInfoConstant.AUTO_SOURCE_CHANGED, true);
+							sendGroupControl(propertyItem, deviceId, value, getOnOffStatus(value), MagicInfoConstant.AUTO_SOURCE, autoSourceSwitching);
 							if (!MagicInfoConstant.ZERO.equals(value)) {
+								String restorePrimarySource = cachedValue.get(MagicInfoConstant.AUTO_SOURCE).get(RESTORE_PRIMARY_SOURCE.getFieldName()).asText();
+								String primarySource = cachedValue.get(MagicInfoConstant.AUTO_SOURCE).get(PRIMARY_SOURCE.getFieldName()).asText();
+								String secondSource = cachedValue.get(MagicInfoConstant.AUTO_SOURCE).get(SECONDARY_SOURCE.getFieldName()).asText();
 								//turn on
-								stats.put(MagicInfoConstant.ADVANCED_SETTING.concat(RESTORE_PRIMARY_SOURCE.getName()), MagicInfoConstant.ZERO.equals(restorePrimarySource) ? "Off" : "On");
+								stats.put(MagicInfoConstant.ADVANCED_SETTING.concat(RESTORE_PRIMARY_SOURCE.getName()), MagicInfoConstant.ZERO.equals(restorePrimarySource) ? MagicInfoConstant.OFF : MagicInfoConstant.ON);
 								stats.put(MagicInfoConstant.ADVANCED_SETTING.concat(PRIMARY_SOURCE.getName()), EnumTypeHandler.getNameByValue(SourceEnum.class, primarySource));
 								stats.put(MagicInfoConstant.ADVANCED_SETTING.concat(SECONDARY_SOURCE.getName()), EnumTypeHandler.getNameByValue(SourceEnum.class, secondSource));
 							} else {
@@ -898,47 +874,39 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 						}
 						break;
 					case PIXEL_SHIFT:
-						String pixelShiftEnable;
-						String pixelShiftH;
-						String pixelShiftV;
-						String pixelShiftTime;
-						PixelShift pixelShift;
+						ObjectNode pixelShift;
 						if (cachedValue != null && cachedValue.has(MagicInfoConstant.MNT_PIXEL_SHIFT) && checkChildNodePixelShift(cachedValue.get(MagicInfoConstant.MNT_PIXEL_SHIFT))) {
-							pixelShiftH = cachedValue.get(MagicInfoConstant.MNT_PIXEL_SHIFT).get(PIXEL_SHIFT_HORIZONTAL.getFieldName()).asText();
-							pixelShiftV = cachedValue.get(MagicInfoConstant.MNT_PIXEL_SHIFT).get(PIXEL_SHIFT_VERTICAL.getFieldName()).asText();
-							pixelShiftTime = cachedValue.get(MagicInfoConstant.MNT_PIXEL_SHIFT).get(PIXEL_SHIFT_TIME.getFieldName()).asText();
-							pixelShift = new PixelShift(true, false, false, false, false, value, pixelShiftH, pixelShiftV, pixelShiftTime);
-							sendGroupControl(propertyItem, deviceId, value, MagicInfoConstant.MNT_PIXEL_SHIFT, pixelShift);
+							pixelShift = (ObjectNode) cachedValue.get(MagicInfoConstant.MNT_PIXEL_SHIFT);
+							pixelShift.put(PIXEL_SHIFT.getFieldName(), value);
+							pixelShift.put(MagicInfoConstant.PIXEL_SHIFT_CHANGED, true);
+							sendGroupControl(propertyItem, deviceId, value, getOnOffStatus(value), MagicInfoConstant.MNT_PIXEL_SHIFT, pixelShift);
 						}
 						break;
 					case PIXEL_SHIFT_HORIZONTAL:
 						if (cachedValue != null && cachedValue.has(MagicInfoConstant.MNT_PIXEL_SHIFT) && checkChildNodePixelShift(cachedValue.get(MagicInfoConstant.MNT_PIXEL_SHIFT))) {
 							value = checkValidInput(0, 4, value);
-							pixelShiftEnable = cachedValue.get(MagicInfoConstant.MNT_PIXEL_SHIFT).get(PIXEL_SHIFT.getFieldName()).asText();
-							pixelShiftV = cachedValue.get(MagicInfoConstant.MNT_PIXEL_SHIFT).get(PIXEL_SHIFT_VERTICAL.getFieldName()).asText();
-							pixelShiftTime = cachedValue.get(MagicInfoConstant.MNT_PIXEL_SHIFT).get(PIXEL_SHIFT_TIME.getFieldName()).asText();
-							pixelShift = new PixelShift(true, false, false, false, false, pixelShiftEnable, value, pixelShiftV, pixelShiftTime);
-							sendGroupControl(propertyItem, deviceId, value, MagicInfoConstant.MNT_PIXEL_SHIFT, pixelShift);
+							pixelShift = (ObjectNode) cachedValue.get(MagicInfoConstant.MNT_PIXEL_SHIFT);
+							pixelShift.put(PIXEL_SHIFT_HORIZONTAL.getFieldName(), value);
+							pixelShift.put(MagicInfoConstant.PIXEL_SHIFT_CHANGED, true);
+							sendGroupControl(propertyItem, deviceId, value, value, MagicInfoConstant.MNT_PIXEL_SHIFT, pixelShift);
 						}
 						break;
 					case PIXEL_SHIFT_VERTICAL:
 						if (cachedValue != null && cachedValue.has(MagicInfoConstant.MNT_PIXEL_SHIFT) && checkChildNodePixelShift(cachedValue.get(MagicInfoConstant.MNT_PIXEL_SHIFT))) {
 							value = checkValidInput(0, 4, value);
-							pixelShiftEnable = cachedValue.get(MagicInfoConstant.MNT_PIXEL_SHIFT).get(PIXEL_SHIFT.getFieldName()).asText();
-							pixelShiftH = cachedValue.get(MagicInfoConstant.MNT_PIXEL_SHIFT).get(PIXEL_SHIFT_HORIZONTAL.getFieldName()).asText();
-							pixelShiftTime = cachedValue.get(MagicInfoConstant.MNT_PIXEL_SHIFT).get(PIXEL_SHIFT_TIME.getFieldName()).asText();
-							pixelShift = new PixelShift(true, false, false, false, false, pixelShiftEnable, pixelShiftH, value, pixelShiftTime);
-							sendGroupControl(propertyItem, deviceId, value, MagicInfoConstant.MNT_PIXEL_SHIFT, pixelShift);
+							pixelShift = (ObjectNode) cachedValue.get(MagicInfoConstant.MNT_PIXEL_SHIFT);
+							pixelShift.put(PIXEL_SHIFT_VERTICAL.getFieldName(), value);
+							pixelShift.put(MagicInfoConstant.PIXEL_SHIFT_CHANGED, true);
+							sendGroupControl(propertyItem, deviceId, value, value, MagicInfoConstant.MNT_PIXEL_SHIFT, pixelShift);
 						}
 						break;
 					case PIXEL_SHIFT_TIME:
 						if (cachedValue != null && cachedValue.has(MagicInfoConstant.MNT_PIXEL_SHIFT) && checkChildNodePixelShift(cachedValue.get(MagicInfoConstant.MNT_PIXEL_SHIFT))) {
 							value = checkValidInput(1, 4, value);
-							pixelShiftEnable = cachedValue.get(MagicInfoConstant.MNT_PIXEL_SHIFT).get(PIXEL_SHIFT.getFieldName()).asText();
-							pixelShiftH = cachedValue.get(MagicInfoConstant.MNT_PIXEL_SHIFT).get(PIXEL_SHIFT_HORIZONTAL.getFieldName()).asText();
-							pixelShiftV = cachedValue.get(MagicInfoConstant.MNT_PIXEL_SHIFT).get(PIXEL_SHIFT_VERTICAL.getFieldName()).asText();
-							pixelShift = new PixelShift(true, false, false, false, false, pixelShiftEnable, pixelShiftH, pixelShiftV, value);
-							sendGroupControl(propertyItem, deviceId, value, MagicInfoConstant.MNT_PIXEL_SHIFT, pixelShift);
+							pixelShift = (ObjectNode) cachedValue.get(MagicInfoConstant.MNT_PIXEL_SHIFT);
+							pixelShift.put(PIXEL_SHIFT_TIME.getFieldName(), value);
+							pixelShift.put(MagicInfoConstant.PIXEL_SHIFT_CHANGED, true);
+							sendGroupControl(propertyItem, deviceId, value, value, MagicInfoConstant.MNT_PIXEL_SHIFT, pixelShift);
 						}
 						break;
 					case TIMER:
@@ -957,7 +925,7 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 											cachedValue.get(MagicInfoConstant.MNT_SAFETY_SCREEN_TIMER).get(TIMER_START_TIME_HOUR.getFieldName()).asText(),
 											cachedValue.get(MagicInfoConstant.MNT_SAFETY_SCREEN_TIMER).get(TIMER_END_TIME_HOUR.getFieldName()).asText());
 								}
-								sendGroupControl(propertyItem, deviceId, requestValue, MagicInfoConstant.MNT_SAFETY_SCREEN_TIMER, timerObject);
+								sendGroupControl(propertyItem, deviceId, requestValue, value, MagicInfoConstant.MNT_SAFETY_SCREEN_TIMER, timerObject);
 
 								stats.remove(MagicInfoConstant.SCREEN_BURN_PROTECTION_GROUP.concat(TIMER_MODE.getName()));
 								removeValueForTheControllableProperty(stats, advancedControllableProperties, MagicInfoConstant.SCREEN_BURN_PROTECTION_GROUP.concat(TIMER_PERIOD.getName()));
@@ -971,7 +939,7 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 								String scrSafePeriod = MagicInfoConstant.SAFE_PERIOD_DEFAULT;
 								String scrSafeTime = MagicInfoConstant.SAFE_TIME_DEFAULT;
 								Object timerObject = new RepeatTimer(true, false, false, false, false, "1", scrSafeMode, scrSafePeriod, scrSafeTime);
-								sendGroupControl(propertyItem, deviceId, requestValue, MagicInfoConstant.MNT_SAFETY_SCREEN_TIMER, timerObject);
+								sendGroupControl(propertyItem, deviceId, requestValue, value, MagicInfoConstant.MNT_SAFETY_SCREEN_TIMER, timerObject);
 
 								stats.remove(MagicInfoConstant.SCREEN_BURN_PROTECTION_GROUP.concat(TIMER_MODE.getName()));
 								removeValueForTheControllableProperty(stats, advancedControllableProperties, MagicInfoConstant.SCREEN_BURN_PROTECTION_GROUP.concat(TIMER_END_TIME_HOUR.getName()));
@@ -989,7 +957,7 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 								String scrSafeStartTime = MagicInfoConstant.TIME_DEFAULT;
 								String scrSafeEndTime = MagicInfoConstant.TIME_DEFAULT;
 								Object timerObject = new IntervalTimer(true, false, false, false, false, "2", scrSafeMode, scrSafeStartTime, scrSafeEndTime);
-								sendGroupControl(propertyItem, deviceId, requestValue, MagicInfoConstant.MNT_SAFETY_SCREEN_TIMER, timerObject);
+								sendGroupControl(propertyItem, deviceId, requestValue, value, MagicInfoConstant.MNT_SAFETY_SCREEN_TIMER, timerObject);
 
 								stats.remove(MagicInfoConstant.SCREEN_BURN_PROTECTION_GROUP.concat(TIMER_MODE.getName()));
 								removeValueForTheControllableProperty(stats, advancedControllableProperties, MagicInfoConstant.SCREEN_BURN_PROTECTION_GROUP.concat(TIMER_PERIOD.getName()));
@@ -1024,7 +992,7 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 							String hour = convert12HourTo24Hour(endTime).split(MagicInfoConstant.COLON)[0];
 							requestValue = convertTo12HourFormat(hour, value);
 							intervalTimer = new IntervalTimer(true, false, false, false, false, "2", mode, startTime, requestValue);
-							sendGroupControl(propertyItem, deviceId, requestValue, MagicInfoConstant.MNT_SAFETY_SCREEN_TIMER, intervalTimer);
+							sendGroupControl(propertyItem, deviceId, requestValue, value, MagicInfoConstant.MNT_SAFETY_SCREEN_TIMER, intervalTimer);
 						}
 						break;
 					case TIMER_START_TIME_MIN:
@@ -1035,7 +1003,7 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 							String hour = convert12HourTo24Hour(startTime).split(MagicInfoConstant.COLON)[0];
 							requestValue = convertTo12HourFormat(hour, value);
 							intervalTimer = new IntervalTimer(true, false, false, false, false, "2", mode, requestValue, endTime);
-							sendGroupControl(propertyItem, deviceId, requestValue, MagicInfoConstant.MNT_SAFETY_SCREEN_TIMER, intervalTimer);
+							sendGroupControl(propertyItem, deviceId, requestValue, value, MagicInfoConstant.MNT_SAFETY_SCREEN_TIMER, intervalTimer);
 						}
 						break;
 					case TIMER_END_TIME_HOUR:
@@ -1046,7 +1014,7 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 							String minute = convert12HourTo24Hour(endTime).split(MagicInfoConstant.COLON)[1];
 							requestValue = convertTo12HourFormat(value, minute);
 							intervalTimer = new IntervalTimer(true, false, false, false, false, "2", mode, startTime, requestValue);
-							sendGroupControl(propertyItem, deviceId, requestValue, MagicInfoConstant.MNT_SAFETY_SCREEN_TIMER, intervalTimer);
+							sendGroupControl(propertyItem, deviceId, requestValue, value, MagicInfoConstant.MNT_SAFETY_SCREEN_TIMER, intervalTimer);
 						}
 						break;
 					case TIMER_START_TIME_HOUR:
@@ -1057,7 +1025,7 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 							String minute = convert12HourTo24Hour(startTime).split(MagicInfoConstant.COLON)[1];
 							requestValue = convertTo12HourFormat(value, minute);
 							intervalTimer = new IntervalTimer(true, false, false, false, false, "2", mode, requestValue, endTime);
-							sendGroupControl(propertyItem, deviceId, requestValue, MagicInfoConstant.MNT_SAFETY_SCREEN_TIMER, intervalTimer);
+							sendGroupControl(propertyItem, deviceId, requestValue, value, MagicInfoConstant.MNT_SAFETY_SCREEN_TIMER, intervalTimer);
 						}
 						break;
 					case TIMER_TIME:
@@ -1066,7 +1034,7 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 							String modeRepeat = cachedValue.get(MagicInfoConstant.MNT_SAFETY_SCREEN_TIMER).get(TIMER_MODE.getFieldName()).asText();
 							String periodTime = cachedValue.get(MagicInfoConstant.MNT_SAFETY_SCREEN_TIMER).get(TIMER_PERIOD.getFieldName()).asText();
 							repeatTimer = new RepeatTimer(true, false, false, false, false, "1", modeRepeat, periodTime, value);
-							sendGroupControl(propertyItem, deviceId, value, MagicInfoConstant.MNT_SAFETY_SCREEN_TIMER, repeatTimer);
+							sendGroupControl(propertyItem, deviceId, value, value, MagicInfoConstant.MNT_SAFETY_SCREEN_TIMER, repeatTimer);
 						}
 						break;
 					case TIMER_PERIOD:
@@ -1075,7 +1043,7 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 							String timerTime = cachedValue.get(MagicInfoConstant.MNT_SAFETY_SCREEN_TIMER).get(TIMER_TIME.getFieldName()).asText();
 							value = checkValidInput(0, 10, value);
 							repeatTimer = new RepeatTimer(true, false, false, false, false, "1", modeRepeat, value, timerTime);
-							sendGroupControl(propertyItem, deviceId, value, MagicInfoConstant.MNT_SAFETY_SCREEN_TIMER, repeatTimer);
+							sendGroupControl(propertyItem, deviceId, value, value, MagicInfoConstant.MNT_SAFETY_SCREEN_TIMER, repeatTimer);
 						}
 						break;
 					default:
@@ -1299,11 +1267,13 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 		if (StringUtils.isNotNullOrEmpty(filterSource)) {
 			sourceValue = Arrays.stream(filterSource.split(MagicInfoConstant.COMMA)).map(String::trim)
 					.map(item -> EnumTypeHandler.getValueByName(SourceEnum.class, item))
+					.filter(item -> !item.equals(MagicInfoConstant.NONE))
 					.collect(Collectors.toList());
 		}
 		if (StringUtils.isNotNullOrEmpty(filterFunction)) {
 			functionValue = Arrays.stream(filterFunction.split(MagicInfoConstant.COMMA)).map(String::trim)
 					.map(item -> EnumTypeHandler.getValueByName(FunctionFilterEnum.class, item))
+					.filter(item -> !item.equals(MagicInfoConstant.NONE))
 					.collect(Collectors.toList());
 		}
 		ObjectNode body = objectMapper.createObjectNode();
@@ -1359,6 +1329,7 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 			JsonNode displayInfoResponse = this.doPost(MagicInfoCommand.DISPLAY_INFO_COMMAND, (JsonNode) idListParam, JsonNode.class);
 
 			if (checkDeviceInformationResponse(displayInfoResponse) && checkDeviceInformationResponse(generalInfoResponse)) {
+				cachedAggregatedDeviceList.clear();
 				for (int i = 0; i < aggregatedIdList.size(); i++) {
 					JsonNode generalItem = generalInfoResponse.get(MagicInfoConstant.ITEMS).get(MagicInfoConstant.SUCCESS_LIST).get(i);
 					JsonNode displayItem = displayInfoResponse.get(MagicInfoConstant.ITEMS).get(MagicInfoConstant.SUCCESS_LIST).get(i);
@@ -1369,6 +1340,7 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 				}
 			}
 		} catch (Exception e) {
+			cachedAggregatedDeviceList.clear();
 			logger.error("Error while populate aggregated device", e);
 		}
 	}
@@ -1414,10 +1386,8 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 	 */
 	private List<AggregatedDevice> cloneAndPopulateAggregatedDeviceList() {
 		if (!checkControl) {
-			if (!cachedAggregatedDeviceList.isEmpty()) {
-				aggregatedDeviceList.clear();
-			}
 			synchronized (cachedAggregatedDeviceList) {
+				aggregatedDeviceList.clear();
 				for (AggregatedDevice aggregatedDevice : cachedAggregatedDeviceList) {
 					List<AdvancedControllableProperty> advancedControllableProperties = new ArrayList<>();
 					Map<String, String> dynamics = new HashMap<>();
@@ -1555,15 +1525,15 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 					break;
 				case WEB_BROWSER_INTERVAL:
 					addAdvanceControlProperties(advancedControllableProperties, stats,
-							createDropdown(propertyName, EnumTypeHandler.getEnumNames(WebBrowserIntervalEnum.class), EnumTypeHandler.getNameByValue(WebBrowserIntervalEnum.class, value)), value);
+							createDropdown(propertyName, EnumTypeHandler.getEnumNames(WebBrowserIntervalEnum.class), EnumTypeHandler.getNameByValue(WebBrowserIntervalEnum.class, value)), EnumTypeHandler.getNameByValue(WebBrowserIntervalEnum.class, value));
 					break;
 				case WEB_BROWSER_ZOOM:
 					addAdvanceControlProperties(advancedControllableProperties, stats,
-							createDropdown(propertyName, EnumTypeHandler.getEnumNames(WebBrowserZoomEnum.class), EnumTypeHandler.getNameByValue(WebBrowserZoomEnum.class, value)), value);
+							createDropdown(propertyName, EnumTypeHandler.getEnumNames(WebBrowserZoomEnum.class), EnumTypeHandler.getNameByValue(WebBrowserZoomEnum.class, value)), EnumTypeHandler.getNameByValue(WebBrowserZoomEnum.class, value));
 					break;
 				case COLOR_TONE:
 					addAdvanceControlProperties(advancedControllableProperties, stats,
-							createDropdown(propertyName, EnumTypeHandler.getEnumNames(ColorToneEnum.class), EnumTypeHandler.getNameByValue(ColorToneEnum.class, value)), value);
+							createDropdown(propertyName, EnumTypeHandler.getEnumNames(ColorToneEnum.class), EnumTypeHandler.getNameByValue(ColorToneEnum.class, value)), EnumTypeHandler.getNameByValue(ColorToneEnum.class, value));
 					break;
 				case COLOR_TEMPERATURE:
 					List<String> availableValues = Arrays.stream(EnumTypeHandler.getEnumValues(ColorTemperatureEnum.class)).collect(Collectors.toList());
@@ -1589,7 +1559,7 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 					availableValues = Arrays.stream(EnumTypeHandler.getEnumValues(SoundModeEnum.class)).collect(Collectors.toList());
 					if (availableValues.contains(value)) {
 						addAdvanceControlProperties(advancedControllableProperties, stats,
-								createDropdown(propertyName, EnumTypeHandler.getEnumNames(SoundModeEnum.class), EnumTypeHandler.getNameByValue(SoundModeEnum.class, value)), value);
+								createDropdown(propertyName, EnumTypeHandler.getEnumNames(SoundModeEnum.class), EnumTypeHandler.getNameByValue(SoundModeEnum.class, value)), EnumTypeHandler.getNameByValue(SoundModeEnum.class, value));
 					} else {
 						stats.put(propertyName, MagicInfoConstant.NONE);
 					}
@@ -1675,7 +1645,7 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 					availableValues = Arrays.stream(EnumTypeHandler.getEnumValues(TimerEnum.class)).collect(Collectors.toList());
 					if (availableValues.contains(value)) {
 						addAdvanceControlProperties(advancedControllableProperties, stats,
-								createDropdown(propertyName, EnumTypeHandler.getEnumNames(TimerEnum.class), EnumTypeHandler.getNameByValue(TimerEnum.class, value)), value);
+								createDropdown(propertyName, EnumTypeHandler.getEnumNames(TimerEnum.class), EnumTypeHandler.getNameByValue(TimerEnum.class, value)), EnumTypeHandler.getNameByValue(TimerEnum.class, value));
 					} else {
 						stats.put(propertyName, MagicInfoConstant.NONE);
 					}
@@ -1842,6 +1812,18 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 	}
 
 	/**
+	 * Gets the status of a switch based on the input value.
+	 * If the input value is equal to 0, the method returns Off.
+	 * Otherwise, it returns On.
+	 *
+	 * @param value The input value to determine the switch status.
+	 *
+	 */
+	private String getOnOffStatus(String value){
+		return  MagicInfoConstant.ZERO.equals(value) ? MagicInfoConstant.OFF : MagicInfoConstant.ON;
+	}
+
+	/**
 	 * Checks the connection status of a device using its unique identifier.
 	 *
 	 * @param id The unique identifier of the device to check.
@@ -1926,8 +1908,8 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 	 * @throws IllegalArgumentException If the device is disconnected or the control operation encounters an error.
 	 */
 	private void sendPowerCommand(String id, String value) {
-		if (!checkConnectionDevice(id)) {
-			throw new IllegalArgumentException("The device is disconnected.");
+		if (MagicInfoConstant.ZERO.equals(value) && !checkConnectionDevice(id)) {
+				throw new IllegalArgumentException("The device is disconnected.");
 		}
 		try {
 			ObjectNode body = createArrayIdsNode(id, MagicInfoConstant.DEVICE_IDS);
@@ -1982,18 +1964,19 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 	 *
 	 * @param property The property to update.
 	 * @param id The unique identifier of the device.
-	 * @param value The new value to set for the property.
+	 * @param requestValue The new value to set for the property.
+	 * @param value The UI value to set for the property.
 	 * @throws IllegalArgumentException If the device is disconnected or if an error occurs while sending the control request.
 	 */
-	private void sendControlRequest(DisplayInfo property, String id, String value) {
+	private void sendControlRequest(DisplayInfo property, String id, String requestValue, String value) {
 		if (!checkConnectionDevice(id)) {
 			throw new IllegalArgumentException("The device is disconnected.");
 		}
 		try {
 			ObjectNode body = createArrayIdsNode(id, MagicInfoConstant.DEVICE_IDS);
-			body.put(property.getFieldName(), value);
+			body.put(property.getFieldName(), requestValue);
 			String requestId = getRequestIdByUpdateCommand(body);
-			if (!checkDataAfterUpdate(id, requestId, "", property.getFieldName(), value)) {
+			if (!checkDataAfterUpdate(id, requestId, "", property.getFieldName(), requestValue)) {
 				throw new IllegalArgumentException(String.format("Can't control property %s with value %s same WebUI", property.getName(), value));
 			}
 		} catch (Exception e) {
@@ -2006,10 +1989,11 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 	 *
 	 * @param property The property to update.
 	 * @param id The unique identifier of the device.
-	 * @param value The new value to set for the property.
+	 * @param requestValue The new value to set for the property.
+	 * @param value The UI value to set for the property.
 	 * @throws IllegalArgumentException If the device is disconnected or if an error occurs while sending the control request.
 	 */
-	private void sendGroupControl(DisplayInfo property, String id, String value, String group, Object object) {
+	private void sendGroupControl(DisplayInfo property, String id, String requestValue, String value, String group, Object object) {
 		if (!checkConnectionDevice(id)) {
 			throw new IllegalArgumentException("The device is disconnected.");
 		}
@@ -2018,7 +2002,7 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 			JsonNode jsonValue = objectMapper.valueToTree(object);
 			body.set(group, jsonValue);
 			String requestId = getRequestIdByUpdateCommand(body);
-			if (!checkDataAfterUpdate(id, requestId, group, property.getFieldName(), value)) {
+			if (!checkDataAfterUpdate(id, requestId, group, property.getFieldName(), requestValue)) {
 				throw new IllegalArgumentException(String.format("In WebUI We can't control property %s with value %s", property.getName(), value));
 			}
 		} catch (Exception e) {
@@ -2094,13 +2078,13 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 	 * @return The converted integer value if the input is valid.
 	 * @throws IllegalArgumentException if the input value is not a valid integer.
 	 */
-	private String checkValidInput(int min, int max, String value) {
+	private String checkValidInput(long min, long max, String value) {
 		if (value.contains(MagicInfoConstant.DOT)) {
 			value = value.split(MagicInfoConstant.DOT_REGEX)[0];
 		}
-		int initial = min;
+		long initial = min;
 		try {
-			int valueCompare = Integer.parseInt(value);
+			long valueCompare = Long.parseLong(value);
 			if (min <= valueCompare && valueCompare <= max) {
 				return String.valueOf(valueCompare);
 			}
@@ -2113,22 +2097,6 @@ public class MagicInfoCommunicator extends RestCommunicator implements Aggregato
 			}
 		}
 		return String.valueOf(initial);
-	}
-
-	/**
-	 * Adds a controllable property and its associated value to the provided statistics and advanced controllable properties lists.
-	 *
-	 * @param stats The statistics map to which the property value will be added.
-	 * @param advancedControllableProperties The list of advanced controllable properties to which the property will be added.
-	 * @param property The advanced controllable property to add.
-	 * @param value The value of the property to be added.
-	 */
-	private void addValueForTheControllableProperty(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties, AdvancedControllableProperty property, String value) {
-		if (property != null) {
-			removeValueForTheControllableProperty(stats, advancedControllableProperties, property.getName());
-			stats.put(property.getName(), StringUtils.isNotNullOrEmpty(value) ? value : MagicInfoConstant.EMPTY);
-			advancedControllableProperties.add(property);
-		}
 	}
 
 	/**

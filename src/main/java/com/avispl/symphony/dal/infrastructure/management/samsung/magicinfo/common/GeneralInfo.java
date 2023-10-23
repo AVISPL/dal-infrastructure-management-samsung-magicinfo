@@ -14,12 +14,12 @@ package com.avispl.symphony.dal.infrastructure.management.samsung.magicinfo.comm
  */
 public enum GeneralInfo {
 	MAC_ADDRESS("MACAddress"),
-	IP("IP"),
+	IP("IPAddress"),
 	LOCATION("Location"),
 	DEVICE_TYPE("DeviceType"),
 	DEVICE_TYPE_VERSION("DeviceTypeVersion"),
 	MAP_LOCATION("MapLocation"),
-	LAST_CONNECTION_TIME("LastConnectionTime"),
+	LAST_CONNECTION_TIME("LastStatusChange"),
 	FIRMWARE_VERSION("FirmwareVersion"),
 	OS_IMAGE_VERSION("OSImageVersion"),
 	PLAYER_VERSION("PlayerVersion"),
