@@ -1,0 +1,98 @@
+models:
+  - model:
+      name: Generic
+      vendor: SamsungMagicInfo
+      filter: true
+      mapping:
+        deviceId: get("generalConf")?.get("deviceId")
+        deviceModel: get("generalConf")?.get("deviceModelName")
+        deviceOnline: get("generalConf")?.get("power")
+        deviceName: get("generalConf")?.get("deviceName")
+      properties:
+        Power: get("generalConf")?.get("power")
+        MACAddress: get("generalConf")?.get("macAddress")
+        IPAddress: get("generalConf")?.get("ipAddress")
+        Location: get("generalConf")?.get("location")
+        DeviceType: get("generalConf")?.get("deviceType")
+        DeviceTypeVersion: get("generalConf")?.get("deviceTypeVersion")
+        MapLocation: get("generalConf")?.get("mapLocation")
+        LastStatusChange: get("generalConf")?.get("lastConnectionTime")
+
+        FirmwareVersion: get("generalConf")?.get("firmwareVersion")
+        OSImageVersion: get("generalConf")?.get("osImageVersion")
+        PlayerVersion: get("generalConf")?.get("playerVersion")
+
+        CPU: get("generalConf")?.get("cpuType")
+        MemorySize(byte): get("generalConf")?.get("memSize")
+        StorageSize(byte): get("generalConf")?.get("hddSize")
+        VideoCard: get("generalConf")?.get("videoAdapter")
+        VideoMemory: get("generalConf")?.get("videoMemory")
+        VideoDriver: get("generalConf")?.get("videoDriver")
+
+        DiskSpaceUsage: get("generalConf")?.get("diskSpaceUsage")
+        AvailableCapacity: get("generalConf")?.get("diskSpaceAvailable")
+
+        ApprovalDate: get("generalConf")?.get("createDate")
+        ScreenSize: get("generalConf")?.get("screenSize")
+        Resolution: get("generalConf")?.get("resolution")
+        Code: get("generalConf")?.get("deviceModelCode")
+        SerialKey: get("generalConf")?.get("serialDecimal")
+
+        DisplayPanel: get("basicPanelStatus")
+        DisplaySource: get("basicSource")
+        WebBrowserRefreshInterval: get("webBrowserUrl")?.get("webBrowserInterval")
+        WebBrowserZoom: get("webBrowserUrl")?.get("webBrowserZoom")
+        WebBrowserHomePage: get("webBrowserUrl")?.get("webBrowserHomepage")
+        WebBrowserPageURL: get("webBrowserUrl")?.get("webBrowserPageurl")
+        Volume(%): get("basicVolume")
+        Mute: get("basicMute")
+        PanelOnTime(hour): get("diagnosisPanelOnTime")
+
+        Temperature: get("diagnosisMonitorTemperature")
+        TemperatureControl(C): get("diagnosisAlarmTemperature")
+
+        LampControl(%): get("mntManual")
+        Contrast(%): get("pvContrast")
+        Brightness(%): get("pvBrightness")
+        Sharpness(%): get("pvSharpness")
+        Color(%): get("pvColor")
+        Tint(G/R)(%): get("pvTint")
+        ColorTone: get("pvColortone")
+        ColorTemperature(K): get("pvColorTemperature")
+        PictureSize: get("pvSize")
+        DigitalCleanView: get("pvDigitalnr")
+        FilmMode: get("pvFilmmode")
+        HDMIBlackLevel: get("pvHdmiBlackLevel")
+
+        Mode: get("soundMode")
+
+        PictureEnhancer: get("pictureEnhancer")
+        MaxPowerSaving: get("maxPowerSaving")
+        AutoPowerOn: get("advancedAutoPower")
+        RemoteConfiguration: get("networkStandbyMode")
+        AutoSourceSwitching: get("autoSourceSwitching")?.get("autoSourceSwitching")
+        RestorePrimarySource: get("autoSourceSwitching")?.get("autoSourceRecovery")
+        PrimarySource: get("autoSourceSwitching")?.get("autoSourcePrimary")
+        SecondarySource: get("autoSourceSwitching")?.get("autoSourceSecondary")
+
+        ScreenLampSchedule: get("mntAuto")?.get("mntAutoIsEnable")
+        MaxTime: get("mntAuto")?.get("mntAutoMaxTime")
+        MaxValue: get("mntAuto")?.get("mntAutoMaxValue")
+        MinTime: get("mntAuto")?.get("mntAutoMinTime")
+        MinValue: get("mntAuto")?.get("mntAutoMinValue")
+
+        ImmediateDisplay: get("mntSafetyScreenRun")
+        Timer: get("mntSafetyScreenTimer")?.get("scrSafeTimer")
+        PixelShift: get("mntPixelShift")?.get("pixelShiftEnable")
+        PixelShiftVertical: get("mntPixelShift")?.get("pixelShiftV")
+        PixelShiftHorizontal: get("mntPixelShift")?.get("pixelShiftH")
+        PixelShiftTime(minute): get("mntPixelShift")?.get("pixelShiftTime")
+
+        TimerMode: get("mntSafetyScreenTimer")?.get("scrSafeMode")
+        TimerPeriod(hour): get("mntSafetyScreenTimer")?.get("scrSafePeriod")
+        TimerTime(sec): get("mntSafetyScreenTimer")?.get("scrSafeTime")
+        TimerStartTime(minute): get("mntSafetyScreenTimer")?.get("scrSafeStartTime")
+        TimerStartTime(hour): get("mntSafetyScreenTimer")?.get("scrSafeStartTime")
+        TimerEndTime(minute): get("mntSafetyScreenTimer")?.get("scrSafeEndTime")
+        TimerEndTime(hour): get("mntSafetyScreenTimer")?.get("scrSafeEndTime")
+
