@@ -38,7 +38,7 @@ public class MagicInfoCommunicatorTest {
 	@BeforeEach
 	void setUp() throws Exception {
 		magicInfoCommunicator = new MagicInfoCommunicator();
-		magicInfoCommunicator.setHost("misstaging.com");
+		magicInfoCommunicator.setHost("");
 		magicInfoCommunicator.setLogin("");
 		magicInfoCommunicator.setPassword("");
 		magicInfoCommunicator.setPort(7001);
@@ -60,7 +60,7 @@ public class MagicInfoCommunicatorTest {
 	@Test
 	void testPing() throws Exception {
 		destroy();
-		magicInfoCommunicator.setHost("misstaging.com1");
+		magicInfoCommunicator.setHost("");
 		magicInfoCommunicator.setLogin("");
 		magicInfoCommunicator.setPassword("");
 		magicInfoCommunicator.setPort(7001);
@@ -77,9 +77,9 @@ public class MagicInfoCommunicatorTest {
 	@Test
 	void testFailedLogin() throws Exception {
 		destroy();
-		magicInfoCommunicator.setHost("misstaging.com");
-		magicInfoCommunicator.setLogin("aaa");
-		magicInfoCommunicator.setPassword("aaa");
+		magicInfoCommunicator.setHost("");
+		magicInfoCommunicator.setLogin("");
+		magicInfoCommunicator.setPassword("");
 		magicInfoCommunicator.setPort(7001);
 		magicInfoCommunicator.init();
 		magicInfoCommunicator.connect();
@@ -107,7 +107,7 @@ public class MagicInfoCommunicatorTest {
 	 */
 	@Test
 	void testGetMultipleStatistics() throws Exception {
-		magicInfoCommunicator.getMultipleStatistics();
+		var statistics = magicInfoCommunicator.getMultipleStatistics();
 		magicInfoCommunicator.retrieveMultipleStatistics();
 		Thread.sleep(30000);
 		List<AggregatedDevice> aggregatedDeviceList = magicInfoCommunicator.retrieveMultipleStatistics();
