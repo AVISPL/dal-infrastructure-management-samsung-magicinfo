@@ -133,7 +133,7 @@ public enum DisplayInfo {
 	 * @throws IllegalStateException if no constant with the specified name is found
 	 */
 	public static DisplayInfo getByName(String name) {
-		Optional<DisplayInfo> property = Arrays.stream(DisplayInfo.values()).filter(group -> group.getName().equals(name)).findFirst();
+		Optional<DisplayInfo> property = Arrays.stream(values()).filter(group -> group.getName().equals(name)).findFirst();
 		if (property.isPresent()) {
 			return property.get();
 		} else {
